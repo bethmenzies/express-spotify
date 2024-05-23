@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title}
+
+  h2 Dynamic content
+
+  p The current number of artists is:
+
+  ul
+    li #[strong Artists:] !{artist_count}
