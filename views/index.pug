@@ -1,5 +1,16 @@
 extends layout
 
 block content
+  - var auth = process.env.ACCESS_TOKEN === "" ? false : true
   h1= title
   p Welcome to #{title}
+
+  if !auth
+    h2= Login 
+    p You need to log in first 
+    a(href='http://localhost:3000/login') Login
+  else
+    h2= "What would you like to do?"
+    button Run
+    button View / Edit Artists
+    button Refresh Cache

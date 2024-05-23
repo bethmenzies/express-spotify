@@ -84,7 +84,7 @@ router.get('/callback', function(req, res, next) {
         if (response.statusCode === 200) {
           process.env.ACCESS_TOKEN = parsedBody.access_token
           process.env.REFRESH_TOKEN = parsedBody.refresh_token
-          res.redirect('/login/success')
+          res.redirect('/')
         } else {
           res.redirect('/login/error')
         }
@@ -97,10 +97,6 @@ router.get('/callback', function(req, res, next) {
       console.error(err)
     })
   }
-});
-
-router.get('/success', function(req, res, next) {
-  res.send('Login successful')
 });
 
 router.get('/error', function(req, res, next) {
