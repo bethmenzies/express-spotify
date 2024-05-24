@@ -6,7 +6,13 @@ block content
 
   h2 Dynamic content
 
-  p The current number of artists is:
+  p The current number of artists is: !{artist_count}
 
-  ul
-    li #[strong Artists:] !{artist_count}
+  if artist_list.length
+    ul
+      each artist in artist_list
+        li
+          p #{artist.name}
+
+  else
+    p There are no artists.
