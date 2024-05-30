@@ -26,7 +26,7 @@ router.get('/', function(req, res, next) {
   res.cookie(stateKey, state);
 
   // your application requests authorization
-  var scope = 'user-read-private user-read-email';
+  var scope = 'user-read-private user-read-email playlist-modify-public playlist-modify-private';
   var url = new URL('https://accounts.spotify.com/authorize');
   url.searchParams.append("response_type", "code");
   url.searchParams.append("client_id", client_id);

@@ -27,7 +27,7 @@ exports.tracks_by_album = async () => {
           name: track.name,
           spotify_id: track.id,
           uri: track.uri,
-          album_spotify_id: allAlbums[i].spotify_id,
+          album: existingTrack.album,
           track_number: track.track_number,
           to_include: existingTrack.to_include,
           _id: existingTrack._id
@@ -38,7 +38,7 @@ exports.tracks_by_album = async () => {
           name: track.name,
           spotify_id: track.id,
           uri: track.uri,
-          album_spotify_id: allAlbums[i].spotify_id,
+          album: allAlbums[i]._id,
           track_number: track.track_number,
           to_include: false
         });

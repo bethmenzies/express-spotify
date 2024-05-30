@@ -44,7 +44,7 @@ exports.recent_albums_by_artist = async () => {
           name: recentAlbums[j].name,
           spotify_id: recentAlbums[j].id,
           release_date: recentAlbums[j].release_date,
-          artist_spotify_id: artist.spotify_id,
+          artist: existingAlbum.artist,
           _id: existingAlbum._id
         });
         await Album.findByIdAndUpdate(existingAlbum._id, new_album, {})
@@ -53,7 +53,7 @@ exports.recent_albums_by_artist = async () => {
           name: recentAlbums[j].name,
           spotify_id: recentAlbums[j].id,
           release_date: recentAlbums[j].release_date,
-          artist_spotify_id: artist.spotify_id
+          artist: artist._id
         });
         await new_album.save();
       }

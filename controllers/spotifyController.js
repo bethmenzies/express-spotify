@@ -1,6 +1,6 @@
 var https = require('https');
 
-exports.call_spotify = async (options) => {
+exports.call_spotify = async (options, body) => {
   return new Promise((resolve) => {
     const request = https.request(options, function(response) {
       let responseBody = '';
@@ -10,7 +10,7 @@ exports.call_spotify = async (options) => {
         const parsedBody = JSON.parse(responseBody + '');
   
         // Resolve based on status code.
-        if (response.statusCode === 200) {
+        if (response.statusCode === 200 || response.statusCode == 201) {
             resolve(parsedBody);
         } else {
             resolve(null)
@@ -22,7 +22,7 @@ exports.call_spotify = async (options) => {
       console.error(err)
     });
 
-    request.write("data \n");
+    request.write(body === undefined ? "data \n" : body);
     request.end();
   });
 };
