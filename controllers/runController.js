@@ -1,8 +1,8 @@
 const Artist = require("../models/artist");
 const Album = require("../models/album");
+const Track = require("../models/track");
 const asyncHandler = require("express-async-handler");
 var https = require('https');
-const album = require("../models/album");
 
 // Get missing spotify ids.
 exports.get_spotify_ids = asyncHandler(async (req, res, next) => {
@@ -56,7 +56,69 @@ exports.get_spotify_ids = asyncHandler(async (req, res, next) => {
             }
         }
     }
+
+    const allAlbums = await Album.find({}, "spotify_id").exec()
+    for (let i = 0; i < allAlbums.length; i++) {
+        let tracks = await getTracksForAlbum(allAlbums[i].spotify_id);
+        for (let j = 0; j < tracks.length; j++) {
+            const existingTrack = await Track.find({ spotify_id: tracks[j].id })
+            if (existingTrack.length > 0) {
+                const new_track = new Track({
+                    name: tracks[j].name,
+                    spotify_id: tracks[j].id,
+                    to_include: existingTrack.to_include,
+                    _id: existingTrack._id
+                });
+                await Track.findByIdAndUpdate(existingTrack._id, new_track, {})
+            } else {
+                const new_track = new Track({
+                    name: tracks[j].name,
+                    spotify_id: tracks[j].id,
+                    to_include: false
+                });
+                await new_track.save();
+            }
+        }
+    }
 });
+
+const getTracksForAlbum = (albumId) => {
+    return new Promise((resolve) => {
+        const options = {
+            hostname: 'api.spotify.com',
+            path: `/v1/albums/${albumId}/tracks`,
+            method: 'GET',
+            headers: {
+                Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
+            },
+            json: true
+        }
+
+        const request = https.request(options, function(response) {
+            let responseBody = '';
+            console.log(response.statusCode);
+            response.setEncoding('utf8');
+            response.on('data', (chunk) => responseBody = responseBody + chunk);
+            response.on('end', function () {
+                const parsedBody = JSON.parse(responseBody + '');
+        
+                // Resolve based on status code.
+                if (response.statusCode === 200) {
+                    resolve(parsedBody.items);
+                } else {
+                    resolve(null)
+                }
+            });
+            });
+        
+        request.on('error', err => {
+        console.error(err)
+        });
+    
+        request.write("data \n");
+        request.end();
+    })
+}
 
 const getDate2YearsAgo = () => {
     var date = new Date()
