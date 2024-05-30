@@ -61,11 +61,11 @@ exports.get_spotify_ids = asyncHandler(async (req, res, next) => {
     for (let i = 0; i < allAlbums.length; i++) {
         let tracks = await getTracksForAlbum(allAlbums[i].spotify_id);
         for (let j = 0; j < tracks.length; j++) {
-            const existingTrack = await Track.find({ spotify_id: tracks[j].id })
+            const existingTrack = await Track.find({ uri: tracks[j].uri })
             if (existingTrack.length > 0) {
                 const new_track = new Track({
                     name: tracks[j].name,
-                    spotify_id: tracks[j].id,
+                    uri: tracks[j].uri,
                     to_include: existingTrack.to_include,
                     _id: existingTrack._id
                 });
@@ -73,7 +73,7 @@ exports.get_spotify_ids = asyncHandler(async (req, res, next) => {
             } else {
                 const new_track = new Track({
                     name: tracks[j].name,
-                    spotify_id: tracks[j].id,
+                    uri: tracks[j].uri,
                     to_include: false
                 });
                 await new_track.save();
