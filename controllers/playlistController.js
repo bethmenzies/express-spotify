@@ -1,4 +1,4 @@
-const Track = require("../models/track");
+const Track = require("../models/playlistTrack");
 const spotify_controller = require("./spotifyController")
 
 exports.create_playlist = async () => {
@@ -19,15 +19,18 @@ exports.create_playlist = async () => {
 }
 
 exports.add_tracks = async (playlistId) => {
-  const trackUris = await Track.find({}, 'uri track_number').populate({ path: "album", populate: { path: "artist", model: "Artist"}}).exec();
+  const trackUris = await Track.find({}, 'track_number uri to_include album.release_date album.artist.name').exec();
   orderedTracks = trackUris
   .sort((a,b) => a.track_number - b.track_number)
-  .sort((a,b) => (a.album.release_date < b.album.release_date) ? 1 : ((b.album.release_date < a.album.release_date) ? -1 : 0))
+  .sort((a,b) => (a.album.release_date > b.album.release_date) ? 1 : ((b.album.release_date > a.album.release_date) ? -1 : 0))
   .sort((a,b) => (a.album.artist.name > b.album.artist.name) ? 1 : ((b.album.artist.name > a.album.artist.name) ? -1 : 0))
 
   const body = JSON.stringify({
-    "uris" : trackUris.map(track => track.uri)
+    "uris" : orderedTracks
+    .filter(track => track.to_include)
+    .map(track => track.uri)
   })
+
   const options = {
     hostname: 'api.spotify.com',
     path: `/v1/playlists/${playlistId}/tracks`,
@@ -37,5 +40,6 @@ exports.add_tracks = async (playlistId) => {
     },
     json: true
   }
+  
   return await spotify_controller.call_spotify(options, body);
 }

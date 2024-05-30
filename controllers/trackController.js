@@ -1,5 +1,5 @@
 const Album = require("../models/album");
-const Track = require("../models/track");
+const Track = require("../models/playlistTrack");
 const spotify_controller = require("./spotifyController")
 
 const get_tracks_by_album = async (albumId) => {
@@ -16,9 +16,10 @@ const get_tracks_by_album = async (albumId) => {
 }
 
 exports.tracks_by_album = async () => {
-  const allAlbums = await Album.find({}, "spotify_id").exec()
-  for (let i = 0; i < allAlbums.length; i++) {
-    let body = await get_tracks_by_album(allAlbums[i].spotify_id);
+  const albums = await Album.find({}).populate("artist").exec()
+
+  for (let i = 0; i < albums.length; i++) {
+    let body = await get_tracks_by_album(albums[i].spotify_id);
     for (let j = 0; j < body.items.length; j++) {
       let track = body.items[j];
       const existingTrack = await Track.find({ uri: track.uri })
@@ -27,7 +28,15 @@ exports.tracks_by_album = async () => {
           name: track.name,
           spotify_id: track.id,
           uri: track.uri,
-          album: existingTrack.album,
+          album: {
+            name: albums[i].name,
+            spotify_id: albums[i].spotify_id,
+            release_date: albums[i].release_date,
+            artist: {
+              name: albums[i].artist.name,
+              spotify_id: albums[i].artist.spotify_id
+            }
+          },
           track_number: track.track_number,
           to_include: existingTrack.to_include,
           _id: existingTrack._id
@@ -38,9 +47,17 @@ exports.tracks_by_album = async () => {
           name: track.name,
           spotify_id: track.id,
           uri: track.uri,
-          album: allAlbums[i]._id,
+          album: {
+            name: albums[i].name,
+            spotify_id: albums[i].spotify_id,
+            release_date: albums[i].release_date,
+            artist: {
+              name: albums[i].artist.name,
+              spotify_id: albums[i].artist.spotify_id
+            }
+          },
           track_number: track.track_number,
-          to_include: false
+          to_include: true
         });
         await new_track.save();
       }
