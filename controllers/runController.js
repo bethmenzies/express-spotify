@@ -43,6 +43,7 @@ exports.get_spotify_ids = asyncHandler(async (req, res, next) => {
                     name: recentAlbums[j].name,
                     spotify_id: recentAlbums[j].id,
                     release_date: recentAlbums[j].release_date,
+                    artist_spotify_id: artist.spotify_id,
                     _id: existingAlbum._id
                 });
                 await Album.findByIdAndUpdate(existingAlbum._id, new_album, {})
@@ -51,6 +52,7 @@ exports.get_spotify_ids = asyncHandler(async (req, res, next) => {
                     name: recentAlbums[j].name,
                     spotify_id: recentAlbums[j].id,
                     release_date: recentAlbums[j].release_date,
+                    artist_spotify_id: artist.spotify_id
                 });
                 await new_album.save();
             }
@@ -65,7 +67,10 @@ exports.get_spotify_ids = asyncHandler(async (req, res, next) => {
             if (existingTrack.length > 0) {
                 const new_track = new Track({
                     name: tracks[j].name,
+                    spotify_id: tracks[j].id,
                     uri: tracks[j].uri,
+                    album_spotify_id: allAlbums[i].spotify_id,
+                    track_number: tracks[j].track_number,
                     to_include: existingTrack.to_include,
                     _id: existingTrack._id
                 });
@@ -73,7 +78,10 @@ exports.get_spotify_ids = asyncHandler(async (req, res, next) => {
             } else {
                 const new_track = new Track({
                     name: tracks[j].name,
+                    spotify_id: tracks[j].id,
                     uri: tracks[j].uri,
+                    album_spotify_id: allAlbums[i].spotify_id,
+                    track_number: tracks[j].track_number,
                     to_include: false
                 });
                 await new_track.save();
