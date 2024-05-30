@@ -3,7 +3,7 @@ const spotify_controller = require("./spotifyController")
 
 exports.create_playlist = async () => {
   const body = JSON.stringify({
-    'name' : `Latest Releases ${Date.now()}`
+    'name' : `Latest Releases - ${Date.now()}`
   });
 
   const options = {
