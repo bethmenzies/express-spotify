@@ -75,7 +75,6 @@ router.get('/callback', function(req, res, next) {
     const request = https.request(options, function(response) {
       response.setEncoding('utf8');
       let responseBody = '';
-      console.log(response.statusCode);
       response.on('data', (chunk) => responseBody = responseBody + chunk);
       response.on('end', function () {
         const parsedBody = JSON.parse(responseBody + '');
