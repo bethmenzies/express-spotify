@@ -18,6 +18,8 @@ const get_tracks_by_album = async (albumId) => {
 exports.tracks_by_album = async () => {
   const albums = await Album.find({}).populate("artist").exec()
 
+  // TODO: ignore when track artist does not include artist  
+
   for (let i = 0; i < albums.length; i++) {
     let body = await get_tracks_by_album(albums[i].spotify_id);
     for (let j = 0; j < body.items.length; j++) {

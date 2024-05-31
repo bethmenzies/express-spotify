@@ -2,9 +2,6 @@ extends layout
 
 block content
   h1= title
-  p Welcome to #{title}
-
-  h2 Dynamic content
 
   p The current number of artists is: !{artist_count}
 
@@ -12,7 +9,10 @@ block content
     ul
       each artist in artist_list
         li
-          p #{artist.name}
+          p. 
+            #{artist.name} #[a( href='/artists'+artist.url+'/delete' ) Delete]
 
   else
     p There are no artists.
+
+  a(href='/artists/add') Add Artist

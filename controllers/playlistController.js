@@ -31,6 +31,8 @@ exports.add_tracks = async (playlistId) => {
     .map(track => track.uri)
   })
 
+  //TODO: handle 100
+
   const options = {
     hostname: 'api.spotify.com',
     path: `/v1/playlists/${playlistId}/tracks`,
@@ -40,6 +42,6 @@ exports.add_tracks = async (playlistId) => {
     },
     json: true
   }
-  
+
   return await spotify_controller.call_spotify(options, body);
 }
