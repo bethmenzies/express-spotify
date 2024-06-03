@@ -14,8 +14,7 @@ const get_tracks_by_album = async (albumId) => {
   return await spotify_controller.call_spotify(options);
 }
 
-const tracks_by_album = async (albums) => {
-  // TODO: ignore when track artist does not include artist  
+const tracks_by_album = async (albums) => { 
   return new Promise(async (resolve) => {
     for (let i = 0; i < albums.length; i++) {
       let body = await get_tracks_by_album(albums[i].id);

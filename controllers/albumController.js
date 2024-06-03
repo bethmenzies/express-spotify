@@ -1,3 +1,4 @@
+const Album = require("../models/album");
 const Artist = require("../models/artist");
 const spotify_controller = require("./spotifyController");
 
@@ -55,7 +56,6 @@ const recent_albums_by_artist = async () => {
             artist: existingAlbum.artist,
             _id: existingAlbum._id
           });
-          console.log("Saving to existing album")
           await Album.findByIdAndUpdate(existingAlbum._id, new_album, {})
         } else {
           const new_album = new Album({
@@ -64,7 +64,6 @@ const recent_albums_by_artist = async () => {
             release_date: recentAlbums[j].release_date,
             artist: artist._id
           });
-          console.log("Saving new album")
           await new_album.save();
         }
       }
