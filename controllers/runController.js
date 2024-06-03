@@ -7,12 +7,12 @@ const tracks_by_album = require('../controllers/trackController.js');
 
 exports.run = asyncHandler(async (req, res, next) => {
   await artist_controller.get_spotify_ids();
-  let albums_complete = await recent_albums_by_artist();
-  if (!albums_complete) {
+  let albums = await recent_albums_by_artist();
+  if (albums.length === 0) {
     res.send("Something failed when getting recent albums. Please try again.")
   }
-  let tracks_complete = await tracks_by_album();
-  if (!tracks_complete) {
+  let tracks = await tracks_by_album(albums);
+  if (!tracks) {
     res.send("Something failed when getting album tracks. Please try again.")
   }
   let playlist = await playlist_controller.create_playlist();

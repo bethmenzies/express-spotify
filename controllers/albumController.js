@@ -1,4 +1,3 @@
-const Album = require("../models/album");
 const Artist = require("../models/artist");
 const spotify_controller = require("./spotifyController");
 
@@ -31,17 +30,22 @@ const recent_albums_by_artist = async () => {
   .exec();
 
   return new Promise(async (resolve) => {
+    var albums = []
     for (let i = 0; i < allArtistsWithSpotifyIds.length; i++) {
       let artist = allArtistsWithSpotifyIds[i]
       let body = await get_albums_by_artist(artist.spotify_id)
       if (body === null) {
-        resolve(false);
+        return resolve([]);
       }
       let recentAlbums = body.items.filter(album => {
         return album.release_date > date
       });
   
       for (let j = 0; j < recentAlbums.length; j++) {
+        recentAlbums[j].artist = {
+          name: artist.name,
+          spotify_id: artist.spotify_id
+        }
         const existingAlbum = await Album.find({ spotify_id: recentAlbums[j].id })
         if (existingAlbum.length > 0) {
           const new_album = new Album({
@@ -64,8 +68,9 @@ const recent_albums_by_artist = async () => {
           await new_album.save();
         }
       }
+      albums = albums.concat(recentAlbums)
     }
-    resolve(true);
+    resolve(albums);
   });
 }
 
