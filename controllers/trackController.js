@@ -28,28 +28,8 @@ const tracks_by_album = async (albums) => {
           continue
         }
 
-        // TODO: Way to remove "duplicates"?
-        const existingTrack = await Track.find({ uri: track.uri })
-        if (existingTrack.length > 0) {
-          const new_track = new Track({
-            name: track.name,
-            spotify_id: track.id,
-            uri: track.uri,
-            album: {
-              name: albums[i].name,
-              spotify_id: albums[i].id,
-              release_date: albums[i].release_date,
-              artist: {
-                name: albums[i].artist.name,
-                spotify_id: albums[i].artist.spotify_id
-              }
-            },
-            track_number: track.track_number,
-            to_include: existingTrack.to_include,
-            _id: existingTrack._id
-          });
-          await Track.findByIdAndUpdate(existingTrack._id, new_track, {})
-        } else {
+        const existingTrack = await Track.find({ name: track.name })
+        if (existingTrack.length === 0) {
           const new_track = new Track({
             name: track.name,
             spotify_id: track.id,
@@ -67,6 +47,8 @@ const tracks_by_album = async (albums) => {
             to_include: true
           });
           await new_track.save();
+        } else {
+          continue;
         }
       }
     }
