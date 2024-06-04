@@ -28,6 +28,7 @@ const tracks_by_album = async (albums) => {
           continue
         }
 
+        // TODO: what if same name by different artists?
         const existingTrack = await Track.find({ name: track.name })
         if (existingTrack.length === 0) {
           const new_track = new Track({

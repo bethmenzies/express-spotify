@@ -71,7 +71,7 @@ exports.artist_list = asyncHandler(async (req, res, next) => {
 });
 
 const get_spotify_id_for_artist = async (artistName) => {
-  let path = `/v1/search?q=artist:${artistName}&type=artist`;
+  let path = `/v1/search?q=${artistName}&type=artist`;
   let escapedPath = encodeURI(path);
   
   const options = {
@@ -94,7 +94,11 @@ exports.get_spotify_ids = async () => {
     let artist = allArtists[i]
     if (artist.spotify_id === null || artist.spotify_id == "" || artist.spotify_id === undefined) {
       let body = await get_spotify_id_for_artist(artist.name);
-      let spotifyId = body.artists.items.find(itemArtist => artist.name === itemArtist.name).id;
+      if (body.artists.items.length === 0) {
+        console.log(`No results for ${artist.name}`);
+        continue;
+      }
+      let spotifyId = body.artists.items.find(itemArtist => artist.name.toLowerCase() === itemArtist.name.toLowerCase()).id;
       const new_artist = new Artist({
         name: artist.name,
         spotify_id: spotifyId,
