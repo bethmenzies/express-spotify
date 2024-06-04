@@ -1,6 +1,5 @@
 const artist_controller = require("../controllers/artistController")
 const playlist_controller = require("../controllers/playlistController")
-const track_controller = require("../controllers/trackController")
 const asyncHandler = require("express-async-handler");
 const recent_albums_by_artist = require('../controllers/albumController.js');
 const tracks_by_album = require('../controllers/trackController.js');

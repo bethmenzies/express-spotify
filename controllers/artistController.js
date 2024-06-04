@@ -94,7 +94,7 @@ exports.get_spotify_ids = async () => {
     let artist = allArtists[i]
     if (artist.spotify_id === null || artist.spotify_id == "" || artist.spotify_id === undefined) {
       let body = await get_spotify_id_for_artist(artist.name);
-      let spotifyId = body.artists.items[0].id;
+      let spotifyId = body.artists.items.find(itemArtist => artist.name === itemArtist.name).id;
       const new_artist = new Artist({
         name: artist.name,
         spotify_id: spotifyId,
