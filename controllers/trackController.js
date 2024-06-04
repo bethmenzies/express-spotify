@@ -29,6 +29,7 @@ const tracks_by_album = async (albums) => {
         }
 
         // TODO: what if same name by different artists?
+        // TODO: missing version of library of broken bindings
         const existingTrack = await Track.find({ name: track.name })
         if (existingTrack.length === 0) {
           const new_track = new Track({
