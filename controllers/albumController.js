@@ -1,4 +1,3 @@
-const Album = require("../models/album");
 const Artist = require("../models/artist");
 const spotify_controller = require("./spotifyController");
 
@@ -42,30 +41,10 @@ const recent_albums_by_artist = async () => {
         return album.release_date > date
       });
   
-      // TODO: Remove the save to db
       for (let j = 0; j < recentAlbums.length; j++) {
         recentAlbums[j].artist = {
           name: artist.name,
           spotify_id: artist.spotify_id
-        }
-        const existingAlbum = await Album.find({ spotify_id: recentAlbums[j].id })
-        if (existingAlbum.length > 0) {
-          const new_album = new Album({
-            name: recentAlbums[j].name,
-            spotify_id: recentAlbums[j].id,
-            release_date: recentAlbums[j].release_date,
-            artist: existingAlbum.artist,
-            _id: existingAlbum._id
-          });
-          await Album.findByIdAndUpdate(existingAlbum._id, new_album, {})
-        } else {
-          const new_album = new Album({
-            name: recentAlbums[j].name,
-            spotify_id: recentAlbums[j].id,
-            release_date: recentAlbums[j].release_date,
-            artist: artist._id
-          });
-          await new_album.save();
         }
       }
       albums = albums.concat(recentAlbums)
