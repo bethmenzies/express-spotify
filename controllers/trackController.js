@@ -27,6 +27,8 @@ const tracks_by_album = async (albums) => {
         if (!track.artists.map(artist => artist.name).includes(albums[i].artist.name)) {
           continue
         }
+
+        // TODO: Way to remove "duplicates"?
         const existingTrack = await Track.find({ uri: track.uri })
         if (existingTrack.length > 0) {
           const new_track = new Track({

@@ -7,14 +7,20 @@ exports.call_spotify = async (options, body) => {
       response.setEncoding('utf8');
       response.on('data', (chunk) => responseBody = responseBody + chunk);
       response.on('end', function () {
-        const parsedBody = JSON.parse(responseBody + '');
+        let parsedBody;
+        try { 
+          parsedBody = JSON.parse(responseBody + '');
+        } catch (err) {
+          console.log(err.name);
+          parsedBody = responseBody + '';
+        }
   
         // Resolve based on status code.
         console.log(response.statusCode);
         if (response.statusCode === 200 || response.statusCode == 201) {
-            resolve(parsedBody);
+            return resolve(parsedBody);
         } else {
-            resolve(null)
+            return resolve(null)
         }
       });
     });
@@ -23,7 +29,9 @@ exports.call_spotify = async (options, body) => {
       console.error(err)
     });
 
-    request.write(body === undefined ? "data \n" : body);
+    if (body !== undefined) {
+      request.write(body);
+    }
     request.end();
   });
 };

@@ -10,12 +10,14 @@ exports.run = asyncHandler(async (req, res, next) => {
   let albums = await recent_albums_by_artist();
   if (albums.length === 0) {
     res.send("Something failed when getting recent albums. Please try again.")
+  } else {
+    let tracks = await tracks_by_album(albums);
+    if (!tracks) {
+      res.send("Something failed when getting album tracks. Please try again.")
+    } else {
+      let playlist = await playlist_controller.create_playlist();
+      await playlist_controller.add_tracks(playlist.id);
+      res.send("run");
+    }
   }
-  let tracks = await tracks_by_album(albums);
-  if (!tracks) {
-    res.send("Something failed when getting album tracks. Please try again.")
-  }
-  let playlist = await playlist_controller.create_playlist();
-  await playlist_controller.add_tracks(playlist.id);
-  res.send("run");
 });

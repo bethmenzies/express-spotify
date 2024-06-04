@@ -42,6 +42,7 @@ const recent_albums_by_artist = async () => {
         return album.release_date > date
       });
   
+      // TODO: Remove the save to db
       for (let j = 0; j < recentAlbums.length; j++) {
         recentAlbums[j].artist = {
           name: artist.name,
