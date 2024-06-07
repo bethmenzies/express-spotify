@@ -27,9 +27,14 @@ exports.create_playlist = async () => {
   return await spotify_controller.call_spotify(options, body);
 }
 
-exports.add_tracks = async (playlistId) => {
-  const trackUris = await Track.find({}, 'track_number uri to_include album.release_date album.artist.name').exec();
-  orderedTracks = trackUris
+exports.add_tracks = async (playlistId, tracks) => {
+  let allTracks;
+  if (tracks !== undefined) {
+    allTracks = tracks;
+  } else {
+    allTracks = await Track.find({}, 'track_number uri to_include album.release_date album.artist.name').exec();
+  }
+  orderedTracks = allTracks
   .sort((a,b) => a.track_number - b.track_number)
   .sort((a,b) => (a.album.release_date > b.album.release_date) ? 1 : ((b.album.release_date > a.album.release_date) ? -1 : 0))
   .sort((a,b) => (a.album.artist.name > b.album.artist.name) ? 1 : ((b.album.artist.name > a.album.artist.name) ? -1 : 0))

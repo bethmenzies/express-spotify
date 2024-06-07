@@ -4,9 +4,10 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+var artistsRouter = require('./routes/artists');
+var createFromDBRouter = require('./routes/createFromDB');
 var indexRouter = require('./routes/index');
 var loginRouter = require('./routes/login');
-var artistsRouter = require('./routes/artists');
 var runRouter = require('./routes/run');
 var refreshRouter = require('./routes/refresh');
 
@@ -33,8 +34,9 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/login', loginRouter);
 app.use('/artists', artistsRouter);
+app.use('/createFromDB', createFromDBRouter);
+app.use('/login', loginRouter);
 app.use('/run', runRouter);
 app.use('/refresh', refreshRouter);
 

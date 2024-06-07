@@ -16,10 +16,11 @@ const get_tracks_by_album = async (albumId) => {
 
 const tracks_by_album = async (albums) => { 
   return new Promise(async (resolve) => {
+    var tracks = [];
     for (let i = 0; i < albums.length; i++) {
       let body = await get_tracks_by_album(albums[i].id);
       if (body === null) {
-        return resolve(false);
+        return resolve(null);
       }
 
       for (let j = 0; j < body.items.length; j++) {
@@ -28,9 +29,7 @@ const tracks_by_album = async (albums) => {
           continue
         }
 
-        // TODO: what if same name by different artists?
-        // TODO: missing version of library of broken bindings
-        const existingTrack = await Track.find({ name: track.name })
+        const existingTrack = await Track.find({ uri: track.uri })
         if (existingTrack.length === 0) {
           const new_track = new Track({
             name: track.name,
@@ -49,12 +48,13 @@ const tracks_by_album = async (albums) => {
             to_include: true
           });
           await new_track.save();
+          tracks.push(new_track)
         } else {
           continue;
         }
       }
     }
-    resolve(true);
+    resolve(tracks);
   });
 }
 
