@@ -14,8 +14,25 @@ const get_tracks_by_album = async (albumId) => {
   return await spotify_controller.call_spotify(options);
 }
 
+const get_old_tracks = async (date) => {
+  return new Promise(async (resolve) => {
+    const allTracks = await Track.find({}, "uri release_date")
+
+    let oldTracks = allTracks.filter(track => {
+      return track.release_date < date
+    });
+  
+    for (let track in oldTracks) {
+      await Track.findOneAndDelete({ uri: track.uri })
+    }
+  
+    return resolve(oldTracks)
+  });
+}
+
 const tracks_by_album = async (albums) => { 
   return new Promise(async (resolve) => {
+    var playlistPosition = 0
     var tracks = [];
     for (let i = 0; i < albums.length; i++) {
       let body = await get_tracks_by_album(albums[i].id);
@@ -45,11 +62,15 @@ const tracks_by_album = async (albums) => {
               }
             },
             track_number: track.track_number,
+            playlist_position: playlistPosition,
             to_include: true
           });
           await new_track.save();
           tracks.push(new_track)
+          playlistPosition++
         } else {
+          await Track.findByIdAndUpdate(existingTrack._id, { playlist_position: playlistPosition}, {})
+          playlistPosition++
           continue;
         }
       }
@@ -58,4 +79,4 @@ const tracks_by_album = async (albums) => {
   });
 }
 
-module.exports = tracks_by_album
+module.exports = { tracks_by_album, get_old_tracks }

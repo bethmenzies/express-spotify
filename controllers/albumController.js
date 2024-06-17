@@ -1,14 +1,6 @@
 const Artist = require("../models/artist");
 const spotify_controller = require("./spotifyController");
 
-const get_date_2_years_ago = () => {
-  var date = new Date()
-  const offset = date.getTimezoneOffset()
-  date = new Date(date.getTime() - (offset*60*1000))
-  date.setFullYear(date.getFullYear() - 2)
-  return date.toISOString().split('T')[0]
-}
-
 const get_albums_by_artist = async (artistId) => {
   const options = {
     hostname: 'api.spotify.com',
@@ -22,9 +14,7 @@ const get_albums_by_artist = async (artistId) => {
   return await spotify_controller.call_spotify(options);
 }
 
-const recent_albums_by_artist = async () => {
-  const date = get_date_2_years_ago();
-
+const recent_albums_by_artist = async (date) => {
   const allArtistsWithSpotifyIds = await Artist.find({}, "name spotify_id")
   .sort({ name: 1 })
   .exec();
@@ -39,7 +29,7 @@ const recent_albums_by_artist = async () => {
       }
       let recentAlbums = body.items.filter(album => {
         return album.release_date > date
-      });
+      }).sort((a,b) => (a.release_date > b.release_date) ? 1 : ((b.release_date > a.release_date) ? -1 : 0))
   
       for (let j = 0; j < recentAlbums.length; j++) {
         recentAlbums[j].artist = {

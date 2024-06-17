@@ -20,6 +20,7 @@ const TrackSchema = mongoose.Schema({
   uri: { type: String, maxLength: 100 },
   album: { type: TrackAlbumSchema, required: true },
   track_number: { type: Number, maxLength: 100 },
+  playlist_position: { type: Number, maxLength: 100 },
   to_include: { type: Boolean }
 });
 

@@ -27,24 +27,43 @@ exports.create_playlist = async () => {
   return await spotify_controller.call_spotify(options, body);
 }
 
-exports.add_tracks = async (playlistId, tracks) => {
-  let allTracks;
-  if (tracks !== undefined) {
-    allTracks = tracks;
-  } else {
-    allTracks = await Track.find({}, 'track_number uri to_include album.release_date album.artist.name').exec();
-  }
-  orderedTracks = allTracks
-  .sort((a,b) => a.track_number - b.track_number)
-  .sort((a,b) => (a.album.release_date > b.album.release_date) ? 1 : ((b.album.release_date > a.album.release_date) ? -1 : 0))
-  .sort((a,b) => (a.album.artist.name > b.album.artist.name) ? 1 : ((b.album.artist.name > a.album.artist.name) ? -1 : 0))
-
-  const allUris = orderedTracks.filter(track => track.to_include).map(track => track.uri)
+exports.remove_old_tracks = async (tracks) => {
+  const allUris = tracks.map(track => track.uri)
   const allBodies = chunkArray(allUris, 100)
 
   for (let i = 0; i < allBodies.length; i++) {
     const body = JSON.stringify({
       "uris" : allBodies[i]
+    })
+
+    const options = {
+      hostname: 'api.spotify.com',
+      path: `/v1/playlists/${playlistId}/tracks`,
+      method: 'DELETE',
+      headers: {
+          Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
+      },
+      json: true
+    }
+
+    await spotify_controller.call_spotify(options, body);
+  }
+
+
+}
+
+exports.add_tracks = async (playlistId, tracks) => {
+  let allTracks;
+  if (tracks !== undefined) {
+    allTracks = tracks;
+  } else {
+    allTracks = await Track.find({}, 'playlist_position uri to_include album.release_date album.artist.name').exec();
+  }
+
+  for (let i = 0; i < allTracks.length; i++) {
+    const body = JSON.stringify({
+      "uris" : [allTracks[i].uri],
+      "position": allTracks[i].playlist_position
     })
 
     const options = {
