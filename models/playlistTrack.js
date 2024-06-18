@@ -24,4 +24,9 @@ const TrackSchema = mongoose.Schema({
   to_include: { type: Boolean }
 });
 
+// Virtual for this artist instance URL.
+TrackSchema.virtual("url").get(function () {
+  return "/track/" + this._id;
+});
+
 module.exports = mongoose.model("Track", TrackSchema);

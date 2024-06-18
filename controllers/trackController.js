@@ -1,5 +1,7 @@
 const Track = require("../models/playlistTrack");
 const spotify_controller = require("./spotifyController")
+const playlist_controller = require("../controllers/playlistController")
+const asyncHandler = require("express-async-handler");
 
 const get_tracks_by_album = async (albumId) => {
   const options = {
@@ -79,4 +81,43 @@ const tracks_by_album = async (albums) => {
   });
 }
 
-module.exports = { tracks_by_album, get_old_tracks }
+const track_list = asyncHandler(async (req, res, next) => {
+  const totalTracks = await Track.countDocuments({}).exec();
+  const numPlaylistTracks = await Track.countDocuments({ to_include: true }).exec()
+
+  const allTracks = await Track.find({ to_include: true }, "name album.artist.name album.name")
+    .sort({ 'album.artist.name': 1 })
+    .exec();
+
+  res.render("tracks", { 
+      title: "Tracks",
+      total_track_count: totalTracks,
+      playlist_track_count: numPlaylistTracks,
+      track_list: allTracks 
+  });
+});
+
+const track_delete_get = asyncHandler(async (req, res, next) => {
+  const track = await Track.findById(req.params.id).exec();
+
+  if (track === null) {
+    res.redirect("/tracks");
+  }
+
+  res.render("track_delete", {
+    title: "Delete Track",
+    track: track
+  });
+});
+
+const track_delete_post = asyncHandler(async (req, res, next) => {
+  let track = await Track.findById(req.body.trackid).exec();
+  await Track.findByIdAndUpdate(req.body.trackid, { to_include: false }).exec();
+
+  if (process.env.PLAYLIST_ID) {
+    playlist_controller.remove_tracks([track])
+  }
+  res.redirect("/tracks");
+});
+
+module.exports = { tracks_by_album, get_old_tracks, track_list, track_delete_get, track_delete_post }

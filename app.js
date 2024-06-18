@@ -10,6 +10,7 @@ var indexRouter = require('./routes/index');
 var loginRouter = require('./routes/login');
 var runRouter = require('./routes/run');
 var refreshRouter = require('./routes/refresh');
+var tracksRouter = require('./routes/tracks');
 
 var app = express();
 
@@ -39,6 +40,7 @@ app.use('/createFromDB', createFromDBRouter);
 app.use('/login', loginRouter);
 app.use('/run', runRouter);
 app.use('/refresh', refreshRouter);
+app.use('/tracks', tracksRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

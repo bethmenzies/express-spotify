@@ -1,0 +1,25 @@
+extends layout
+
+block content
+  h1= title
+
+  p The total number of tracks is: !{total_track_count}
+
+  p The number of tracks in the playlist is: !{playlist_track_count}
+
+  if track_list.length
+    table(border='1')
+      tr 
+        th Name 
+        th Artist 
+        th Album
+        th Delete?
+      each track in track_list
+        tr
+          td #{track.name}
+          td #{track.album.artist.name}
+          td #{track.album.name}
+          td #[a( href='/tracks'+track.url+'/delete' ) Delete]
+
+  else
+    p There are no tracks.
