@@ -17,7 +17,7 @@ exports.run = asyncHandler(async (req, res, next) => {
   if (process.env.PLAYLIST_ID) {
     let tracks = await get_old_tracks(date)
     if (tracks.length > 0) {
-      playlist_controller.remove_old_tracks(tracks);
+      playlist_controller.remove_tracks(tracks);
     }
   }
   await artist_controller.get_spotify_ids();

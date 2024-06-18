@@ -16,14 +16,14 @@ const get_tracks_by_album = async (albumId) => {
 
 const get_old_tracks = async (date) => {
   return new Promise(async (resolve) => {
-    const allTracks = await Track.find({}, "uri release_date")
+    const allTracks = await Track.find({}, "uri release_date").exec();
 
     let oldTracks = allTracks.filter(track => {
       return track.release_date < date
     });
   
     for (let track in oldTracks) {
-      await Track.findOneAndDelete({ uri: track.uri })
+      await Track.findOneAndDelete({ uri: track.uri }).exec();
     }
   
     return resolve(oldTracks)
@@ -46,7 +46,7 @@ const tracks_by_album = async (albums) => {
           continue
         }
 
-        const existingTrack = await Track.find({ uri: track.uri })
+        const existingTrack = await Track.find({ uri: track.uri }).exec();
         if (existingTrack.length === 0) {
           const new_track = new Track({
             name: track.name,
@@ -69,7 +69,7 @@ const tracks_by_album = async (albums) => {
           tracks.push(new_track)
           playlistPosition++
         } else {
-          await Track.findByIdAndUpdate(existingTrack._id, { playlist_position: playlistPosition}, {})
+          await Track.findByIdAndUpdate(existingTrack[0]._id, { playlist_position: playlistPosition}).exec();
           playlistPosition++
           continue;
         }

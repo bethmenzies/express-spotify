@@ -7,6 +7,6 @@ exports.refresh = asyncHandler(async (req, res, next) => {
 });
 
 exports.confirm = asyncHandler(async (req, res, next) => {
-  await Track.updateMany({"to_include": false}, {"$set":{"to_include": true}});
+  await Track.updateMany({"to_include": false}, {"$set":{"to_include": true}}).exec();
   res.redirect("/");
 });

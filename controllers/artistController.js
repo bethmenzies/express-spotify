@@ -1,7 +1,9 @@
 const Artist = require("../models/artist");
+const Track = require("../models/playlistTrack");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const spotify_controller = require("./spotifyController");
+const { remove_tracks } = require("./playlistController");
 
 exports.artist_delete_get = asyncHandler(async (req, res, next) => {
   const artist = await Artist.findById(req.params.id).exec();
@@ -17,7 +19,13 @@ exports.artist_delete_get = asyncHandler(async (req, res, next) => {
 });
 
 exports.artist_delete_post = asyncHandler(async (req, res, next) => {
-  await Artist.findByIdAndDelete(req.body.artistid);
+  let artist = await Artist.findById(req.body.artistid).exec();
+  await Artist.findByIdAndDelete(req.body.artistid).exec();
+  let tracks = await Track.find({ 'album.artist.name': artist.name }).exec();
+  await Track.deleteMany({ 'album.artist.name': artist.name }).exec();
+  if (process.env.PLAYLIST_ID) {
+    remove_tracks(tracks)
+  }
   res.redirect("/artists");
 });
 
@@ -104,7 +112,7 @@ exports.get_spotify_ids = async () => {
         spotify_id: spotifyId,
         _id: artist.id
       });
-      await Artist.findByIdAndUpdate(artist.id, new_artist, {});
+      await Artist.findByIdAndUpdate(artist.id, new_artist, {}).exec();
     }
   }
 }

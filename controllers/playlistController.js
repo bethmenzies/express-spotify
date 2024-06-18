@@ -27,21 +27,28 @@ exports.create_playlist = async () => {
   return await spotify_controller.call_spotify(options, body);
 }
 
-exports.remove_old_tracks = async (tracks) => {
-  const allUris = tracks.map(track => track.uri)
-  const allBodies = chunkArray(allUris, 100)
+exports.remove_tracks = async (tracks) => {
+  var uriObjects = []
+  for (let i = 0; i < tracks.length; i++) {
+    const uriObject = {
+      uri: tracks[i].uri
+    }
+    uriObjects.push(uriObject)
+  }
+  const allBodies = chunkArray(uriObjects, 100)
 
   for (let i = 0; i < allBodies.length; i++) {
     const body = JSON.stringify({
-      "uris" : allBodies[i]
+      "tracks": uriObjects
     })
 
     const options = {
       hostname: 'api.spotify.com',
-      path: `/v1/playlists/${playlistId}/tracks`,
+      path: `/v1/playlists/${process.env.PLAYLIST_ID}/tracks`,
       method: 'DELETE',
       headers: {
-          Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
+          Authorization: 'Bearer ' + process.env.ACCESS_TOKEN,
+          "Transfer-Encoding": "chunked"
       },
       json: true
     }
