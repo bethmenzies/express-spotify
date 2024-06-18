@@ -16,10 +16,10 @@ block content
         th Delete?
       each track in track_list
         tr
-          td #{track.name}
+          td #[a( href=track.url ) #{track.name}]
           td #{track.album.artist.name}
           td #{track.album.name}
-          td #[a( href='/tracks'+track.url+'/delete' ) Delete]
+          td #[a( href='/tracks'+track.trackurl+'/delete' ) Delete]
 
   else
     p There are no tracks.

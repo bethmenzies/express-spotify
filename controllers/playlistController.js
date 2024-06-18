@@ -28,35 +28,40 @@ exports.create_playlist = async () => {
 }
 
 exports.remove_tracks = async (tracks) => {
-  var uriObjects = []
-  for (let i = 0; i < tracks.length; i++) {
-    const uriObject = {
-      uri: tracks[i].uri
+  return new Promise(async (resolve) => {
+    var uriObjects = []
+    for (let i = 0; i < tracks.length; i++) {
+      const uriObject = {
+        uri: tracks[i].uri
+      }
+      uriObjects.push(uriObject)
     }
-    uriObjects.push(uriObject)
-  }
-  const allBodies = chunkArray(uriObjects, 100)
+    const allBodies = chunkArray(uriObjects, 100)
 
-  for (let i = 0; i < allBodies.length; i++) {
-    const body = JSON.stringify({
-      "tracks": uriObjects
-    })
+    for (let i = 0; i < allBodies.length; i++) {
+      const body = JSON.stringify({
+        "tracks": uriObjects
+      })
 
-    const options = {
-      hostname: 'api.spotify.com',
-      path: `/v1/playlists/${process.env.PLAYLIST_ID}/tracks`,
-      method: 'DELETE',
-      headers: {
-          Authorization: 'Bearer ' + process.env.ACCESS_TOKEN,
-          "Transfer-Encoding": "chunked"
-      },
-      json: true
+      const options = {
+        hostname: 'api.spotify.com',
+        path: `/v1/playlists/${process.env.PLAYLIST_ID}/tracks`,
+        method: 'DELETE',
+        headers: {
+            Authorization: 'Bearer ' + process.env.ACCESS_TOKEN,
+            "Transfer-Encoding": "chunked"
+        },
+        json: true
+      }
+
+      let response = await spotify_controller.call_spotify(options, body);
+      if (response === null) {
+        return resolve(false)
+      } else {
+        return resolve(true)
+      }
     }
-
-    await spotify_controller.call_spotify(options, body);
-  }
-
-
+  })
 }
 
 exports.add_tracks = async (playlistId, tracks) => {

@@ -18,9 +18,9 @@ exports.call_spotify = async (options, body) => {
         // Resolve based on status code.
         console.log(response.statusCode);
         if (response.statusCode === 200 || response.statusCode == 201) {
-            return resolve(parsedBody);
+          return resolve(parsedBody);
         } else {
-            return resolve(null)
+          return resolve(null)
         }
       });
     });

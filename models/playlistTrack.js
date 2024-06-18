@@ -17,6 +17,7 @@ const TrackAlbumSchema = new Schema({
 const TrackSchema = mongoose.Schema({
   name: { type: String, required: true, maxLength: 100 },
   spotify_id: { type: String, required: true, maxLength: 100 },
+  url: { type: String, required: true },
   uri: { type: String, maxLength: 100 },
   album: { type: TrackAlbumSchema, required: true },
   track_number: { type: Number, maxLength: 100 },
@@ -25,7 +26,7 @@ const TrackSchema = mongoose.Schema({
 });
 
 // Virtual for this artist instance URL.
-TrackSchema.virtual("url").get(function () {
+TrackSchema.virtual("trackurl").get(function () {
   return "/track/" + this._id;
 });
 

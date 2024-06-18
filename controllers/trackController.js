@@ -44,7 +44,7 @@ const tracks_by_album = async (albums) => {
 
       for (let j = 0; j < body.items.length; j++) {
         let track = body.items[j];
-        if (!track.artists.map(artist => artist.name).includes(albums[i].artist.name)) {
+        if (!track.artists.map(artist => artist.name.toLowerCase()).includes(albums[i].artist.name.toLowerCase())) {
           continue
         }
 
@@ -54,6 +54,7 @@ const tracks_by_album = async (albums) => {
             name: track.name,
             spotify_id: track.id,
             uri: track.uri,
+            url: track.external_urls.spotify,
             album: {
               name: albums[i].name,
               spotify_id: albums[i].id,
@@ -71,8 +72,10 @@ const tracks_by_album = async (albums) => {
           tracks.push(new_track)
           playlistPosition++
         } else {
-          await Track.findByIdAndUpdate(existingTrack[0]._id, { playlist_position: playlistPosition}).exec();
-          playlistPosition++
+          if (existingTrack[0].to_include) {
+            await Track.findByIdAndUpdate(existingTrack[0]._id, { playlist_position: playlistPosition}).exec();
+            playlistPosition++
+          }
           continue;
         }
       }
@@ -85,8 +88,8 @@ const track_list = asyncHandler(async (req, res, next) => {
   const totalTracks = await Track.countDocuments({}).exec();
   const numPlaylistTracks = await Track.countDocuments({ to_include: true }).exec()
 
-  const allTracks = await Track.find({ to_include: true }, "name album.artist.name album.name")
-    .sort({ 'album.artist.name': 1 })
+  const allTracks = await Track.find({ to_include: true }, "name url album.artist.name album.name")
+    .sort({ 'playlist_position': 1 })
     .exec();
 
   res.render("tracks", { 
@@ -112,12 +115,18 @@ const track_delete_get = asyncHandler(async (req, res, next) => {
 
 const track_delete_post = asyncHandler(async (req, res, next) => {
   let track = await Track.findById(req.body.trackid).exec();
-  await Track.findByIdAndUpdate(req.body.trackid, { to_include: false }).exec();
-
   if (process.env.PLAYLIST_ID) {
-    playlist_controller.remove_tracks([track])
+    let isDeleted = await playlist_controller.remove_tracks([track])
+    if (isDeleted) {
+      await Track.findByIdAndUpdate(req.body.trackid, { to_include: false }).exec();
+      res.redirect("/tracks");
+    } else {
+      res.send("Something failed when deleting track. Please try again.")
+    }
+  } else {
+    await Track.findByIdAndUpdate(req.body.trackid, { to_include: false }).exec();
+    res.redirect("/tracks");
   }
-  res.redirect("/tracks");
 });
 
 module.exports = { tracks_by_album, get_old_tracks, track_list, track_delete_get, track_delete_post }

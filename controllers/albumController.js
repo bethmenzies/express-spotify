@@ -4,7 +4,7 @@ const spotify_controller = require("./spotifyController");
 const get_albums_by_artist = async (artistId) => {
   const options = {
     hostname: 'api.spotify.com',
-    path: `/v1/artists/${artistId}/albums`,
+    path: `/v1/artists/${artistId}/albums?limit=50`,
     method: 'GET',
     headers: {
         Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
