@@ -72,22 +72,44 @@ exports.add_tracks = async (playlistId, tracks) => {
     allTracks = await Track.find({}, 'playlist_position uri to_include album.release_date album.artist.name').exec();
   }
 
-  for (let i = 0; i < allTracks.length; i++) {
-    const body = JSON.stringify({
-      "uris" : [allTracks[i].uri],
-      "position": allTracks[i].playlist_position
-    })
+  if (tracks !== undefined) {
+    for (let i = 0; i < allTracks.length; i++) {
+      const body = JSON.stringify({
+        "uris" : [allTracks[i].uri],
+        "position": allTracks[i].playlist_position
+      })
 
-    const options = {
-      hostname: 'api.spotify.com',
-      path: `/v1/playlists/${playlistId}/tracks`,
-      method: 'POST',
-      headers: {
-          Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
-      },
-      json: true
+      const options = {
+        hostname: 'api.spotify.com',
+        path: `/v1/playlists/${playlistId}/tracks`,
+        method: 'POST',
+        headers: {
+            Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
+        },
+        json: true
+      }
+
+      await spotify_controller.call_spotify(options, body);
     }
+  } else {
+    const allUris = allTracks.filter(track => track.to_include).map(track => track.uri)
+    const allBodies = chunkArray(allUris, 100)
 
-    await spotify_controller.call_spotify(options, body);
+    for (let i = 0; i < allBodies.length; i++) {
+      const body = JSON.stringify({
+        "uris" : allBodies[i]
+      })
+
+      const options = {
+        hostname: 'api.spotify.com',
+        path: `/v1/playlists/${playlistId}/tracks`,
+        method: 'POST',
+        headers: {
+            Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
+        },
+        json: true
+      }
+      await spotify_controller.call_spotify(options, body);
+    }
   }
 }

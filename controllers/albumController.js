@@ -1,10 +1,10 @@
 const Artist = require("../models/artist");
 const spotify_controller = require("./spotifyController");
 
-const get_albums_by_artist = async (artistId) => {
+const get_albums_by_artist = async (artistId, limit, offset) => {
   const options = {
     hostname: 'api.spotify.com',
-    path: `/v1/artists/${artistId}/albums?limit=50`,
+    path: `/v1/artists/${artistId}/albums?limit=${limit}&offset=${offset}`,
     method: 'GET',
     headers: {
         Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
@@ -22,14 +22,25 @@ const recent_albums_by_artist = async (date) => {
   return new Promise(async (resolve) => {
     var albums = []
     for (let i = 0; i < allArtistsWithSpotifyIds.length; i++) {
+      var items = []
       let artist = allArtistsWithSpotifyIds[i]
-      let body = await get_albums_by_artist(artist.spotify_id)
+      let body = await get_albums_by_artist(artist.spotify_id, 1, 0)
       if (body === null) {
         return resolve([]);
       }
-      let recentAlbums = body.items.filter(album => {
+      let total = body.total
+      let iterations = Math.floor(total/50)
+      for (let j = 0; j <= iterations; j++) {
+        let body = await get_albums_by_artist(artist.spotify_id, 50, j*50)
+        items.push(...body.items)
+      }
+
+      let recentAlbums = items
+      .filter(album => !album.artists.map(artist => artist.name.toLowerCase()).includes("Various Artists".toLowerCase()))
+      .filter(album => {
         return album.release_date > date
-      }).sort((a,b) => (a.release_date > b.release_date) ? 1 : ((b.release_date > a.release_date) ? -1 : 0))
+      })
+      .sort((a,b) => (a.release_date > b.release_date) ? 1 : ((b.release_date > a.release_date) ? -1 : 0))
   
       for (let j = 0; j < recentAlbums.length; j++) {
         recentAlbums[j].artist = {
