@@ -1,5 +1,5 @@
 const artist_controller = require("../controllers/artistController")
-const playlist_controller = require("../controllers/playlistController")
+const { remove_tracks, add_tracks, create_playlist } = require("../controllers/playlistController")
 const asyncHandler = require("express-async-handler");
 const recent_albums_by_artist = require('../controllers/albumController.js');
 const { tracks_by_album, get_old_tracks } = require('../controllers/trackController.js');
@@ -17,7 +17,7 @@ exports.run = asyncHandler(async (req, res, next) => {
   if (process.env.PLAYLIST_ID) {
     let tracks = await get_old_tracks(date)
     if (tracks.length > 0) {
-      playlist_controller.remove_tracks(tracks);
+      remove_tracks(tracks);
     }
   }
   await artist_controller.get_spotify_ids();
@@ -38,10 +38,14 @@ exports.run = asyncHandler(async (req, res, next) => {
     playlistId = process.env.PLAYLIST_ID;
     playlistState = "updated";
   } else {
-    let playlist = await playlist_controller.create_playlist();
+    let playlist = await create_playlist();
     playlistId = playlist.id
     playlistState = "created";
   }
-  await playlist_controller.add_tracks(playlistId, tracks);
-  res.send(`Playlist ${playlistState}!`);
+  let playlist = await add_tracks(playlistId, tracks);
+  if (!playlist) {
+    res.send("Something went wrong when adding tracks to playlist. Everything will be in the DB though - so try using the create from DB option.")
+  } else {
+    res.send(`Playlist ${playlistState}!`);
+  }
 });

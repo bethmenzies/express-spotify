@@ -1,6 +1,6 @@
 const Track = require("../models/playlistTrack");
 const spotify_controller = require("./spotifyController")
-const playlist_controller = require("../controllers/playlistController")
+const { remove_tracks } = require("../controllers/playlistController")
 const asyncHandler = require("express-async-handler");
 
 const get_tracks_by_album = async (albumId) => {
@@ -116,7 +116,7 @@ const track_delete_get = asyncHandler(async (req, res, next) => {
 const track_delete_post = asyncHandler(async (req, res, next) => {
   let track = await Track.findById(req.body.trackid).exec();
   if (process.env.PLAYLIST_ID) {
-    let isDeleted = await playlist_controller.remove_tracks([track])
+    let isDeleted = await remove_tracks([track])
     if (isDeleted) {
       await Track.findByIdAndUpdate(req.body.trackid, { to_include: false }).exec();
       res.redirect("/tracks");
