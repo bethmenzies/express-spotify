@@ -1,5 +1,5 @@
 const Artist = require("../models/artist");
-const spotify_controller = require("./spotifyController");
+const { call_spotify } = require("./spotifyController");
 
 const get_albums_by_artist = async (artistId, limit, offset) => {
   const options = {
@@ -11,7 +11,7 @@ const get_albums_by_artist = async (artistId, limit, offset) => {
     },
     json: true
   }
-  return await spotify_controller.call_spotify(options);
+  return await call_spotify(options);
 }
 
 const recent_albums_by_artist = async (date) => {

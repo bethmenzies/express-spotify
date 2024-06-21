@@ -1,6 +1,6 @@
 var https = require('https');
 
-exports.call_spotify = async (options, body) => {
+const call_spotify = async (options, body) => {
   return new Promise((resolve) => {
     const request = https.request(options, function(response) {
       let responseBody = '';
@@ -35,3 +35,5 @@ exports.call_spotify = async (options, body) => {
     request.end();
   });
 };
+
+module.exports = { call_spotify }

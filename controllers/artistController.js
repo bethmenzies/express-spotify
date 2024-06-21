@@ -2,7 +2,7 @@ const Artist = require("../models/artist");
 const Track = require("../models/playlistTrack");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-const spotify_controller = require("./spotifyController");
+const { call_spotify } = require("./spotifyController");
 const { remove_tracks } = require("./playlistController");
 
 exports.artist_delete_get = asyncHandler(async (req, res, next) => {
@@ -92,7 +92,7 @@ const get_spotify_id_for_artist = async (artistName) => {
     json: true
   };
 
-  return await spotify_controller.call_spotify(options);
+  return await call_spotify(options);
 }
 
 exports.get_spotify_ids = async () => {

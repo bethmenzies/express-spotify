@@ -1,5 +1,5 @@
 const Track = require("../models/playlistTrack");
-const spotify_controller = require("./spotifyController")
+const { call_spotify } = require("./spotifyController")
 const { remove_tracks } = require("../controllers/playlistController")
 const asyncHandler = require("express-async-handler");
 
@@ -13,7 +13,7 @@ const get_tracks_by_album = async (albumId) => {
     },
     json: true
   }
-  return await spotify_controller.call_spotify(options);
+  return await call_spotify(options);
 }
 
 const get_old_tracks = async (date) => {

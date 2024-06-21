@@ -1,5 +1,5 @@
 const Track = require("../models/playlistTrack");
-const spotify_controller = require("./spotifyController")
+const { call_spotify } = require("./spotifyController")
 
 const chunkArray = (array, chunkSize) => {
   const numberOfChunks = Math.ceil(array.length / chunkSize)
@@ -24,7 +24,7 @@ const create_playlist = async () => {
     },
     json: true
   }
-  return await spotify_controller.call_spotify(options, body);
+  return await call_spotify(options, body);
 }
 
 const remove_tracks = async (tracks) => {
@@ -54,7 +54,7 @@ const remove_tracks = async (tracks) => {
         json: true
       }
 
-      let response = await spotify_controller.call_spotify(options, body);
+      let response = await call_spotify(options, body);
       if (response === null) {
         return resolve(false)
       } else {
@@ -113,7 +113,7 @@ const call_add_tracks_to_playlist = async (playlistId, body) => {
     },
     json: true
   }
-  await spotify_controller.call_spotify(options, body);
+  await call_spotify(options, body);
 }
 
 module.exports = { add_tracks, add_tracks_from_db, remove_tracks, create_playlist }
