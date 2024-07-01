@@ -1,11 +1,10 @@
 var express = require('express');
 var router = express.Router();
-
-const refresh_controller = require("../controllers/refreshController")
+const { refresh, confirm } = require("../controllers/refreshController")
 
 /* GET home page. */
-router.get('/', refresh_controller.refresh);
+router.get('/', refresh);
 
-router.get("/confirm", refresh_controller.confirm);
+router.get("/confirm", confirm);
 
 module.exports = router;
