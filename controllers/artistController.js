@@ -20,13 +20,22 @@ exports.artist_delete_get = asyncHandler(async (req, res, next) => {
 
 exports.artist_delete_post = asyncHandler(async (req, res, next) => {
   let artist = await Artist.findById(req.body.artistid).exec();
-  await Artist.findByIdAndDelete(req.body.artistid).exec();
   let tracks = await Track.find({ 'album.artist.name': artist.name }).exec();
-  await Track.deleteMany({ 'album.artist.name': artist.name }).exec();
+
   if (process.env.PLAYLIST_ID) {
-    remove_tracks(tracks)
+    let isDeleted = await remove_tracks(tracks)
+    if (isDeleted) {
+      await Artist.findByIdAndDelete(req.body.artistid).exec();
+      await Track.deleteMany({ 'album.artist.name': artist.name }).exec();
+      res.redirect("/artists");
+    } else {
+      res.send("Something failed when deleting artist tracks from playlist. Please try to delete the artist again.")
+    }
+  } else {
+    await Artist.findByIdAndDelete(req.body.artistid).exec();
+    await Track.deleteMany({ 'album.artist.name': artist.name }).exec();
+    res.redirect("/artists");
   }
-  res.redirect("/artists");
 });
 
 exports.artist_add_get = (req, res, next) => {
