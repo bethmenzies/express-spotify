@@ -27,8 +27,9 @@ const get_old_tracks = async (date) => {
     for (let i = 0; i < oldTracks.length; i++) {
       await Track.findOneAndDelete({ uri: oldTracks[i].uri }).exec();
     }
-  
-    return resolve(oldTracks)
+
+    let oldTracksInPlaylist = oldTracks.filter(track => track.to_include)
+    return resolve(oldTracksInPlaylist)
   });
 }
 
