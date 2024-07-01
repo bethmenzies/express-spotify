@@ -119,13 +119,13 @@ const track_delete_post = asyncHandler(async (req, res, next) => {
   if (process.env.PLAYLIST_ID) {
     let isDeleted = await remove_tracks([track])
     if (isDeleted) {
-      await Track.findByIdAndUpdate(req.body.trackid, { to_include: false }).exec();
+      await Track.findByIdAndUpdate(req.body.trackid, { to_include: false, playlist_position: -1 }).exec();
       res.redirect("/tracks");
     } else {
       res.send("Something failed when deleting track. Please try again.")
     }
   } else {
-    await Track.findByIdAndUpdate(req.body.trackid, { to_include: false }).exec();
+    await Track.findByIdAndUpdate(req.body.trackid, { to_include: false, playlist_position: -1 }).exec();
     res.redirect("/tracks");
   }
 });
