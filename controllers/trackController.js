@@ -56,7 +56,7 @@ const artist_tracks_by_album = async (albums, artistName) => {
         if (albums[i].album_type == "single") {
           priority--
         }
-        if (albums[i].name.toLowerCase().includes("deluxe edition") || albums[i].name.toLowerCase().includes("special edition")) {
+        if (albums[i].name.toLowerCase().includes("deluxe edition") || albums[i].name.toLowerCase().includes("special edition") || albums[i].name.toLowerCase().includes("extended version") || albums[i].name.toLowerCase().includes("deluxe")) {
           priority++
         }
         if (albums[i].name.toLowerCase().includes("live in") || albums[i].name.toLowerCase().includes("live at") || albums[i].name.toLowerCase().includes("live from")) {
@@ -68,7 +68,7 @@ const artist_tracks_by_album = async (albums, artistName) => {
         track.priority = priority
 
         let existingTrackIndex = tracks.findIndex(existingTrack => {
-          return existingTrack.name === track.name &&
+          return existingTrack.name.toLowerCase() === track.name.toLowerCase() &&
           existingTrack.artists.length === track.artists.length &&
           existingTrack.artists[0].name === track.artists[0].name &&
           existingTrack.duration_ms === track.duration_ms
