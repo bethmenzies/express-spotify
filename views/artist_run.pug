@@ -1,0 +1,12 @@
+extends layout
+
+block content
+
+  h1 #{title}: #{artist.name}
+
+  p Submit to create the playlist for this artist
+
+  form(method='POST')
+    div.form-group
+
+    button.btn.btn-primary(type='submit') Run

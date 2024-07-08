@@ -33,6 +33,59 @@ const get_old_tracks = async (date) => {
   });
 }
 
+const artist_tracks_by_album = async (albums, artistName) => {
+  return new Promise(async (resolve) => {
+    var tracks = []
+    for (let i = 0; i < albums.length; i++) {
+      let body = await get_tracks_by_album(albums[i].id)
+      if (body === null) {
+        return resolve(null)
+      }
+
+      for (let j = 0; j < body.items.length; j++) {
+        let track = body.items[j]
+
+        if (!track.artists.map(artist => artist.name.toLowerCase()).includes(artistName.toLowerCase())) {
+          continue
+        }
+
+        let priority = 0
+        if (albums[i].album_type === "album") {
+          priority++
+        }
+        if (albums[i].album_type == "single") {
+          priority--
+        }
+        if (albums[i].name.toLowerCase().includes("deluxe edition") || albums[i].name.toLowerCase().includes("special edition")) {
+          priority++
+        }
+        if (albums[i].name.toLowerCase().includes("live in") || albums[i].name.toLowerCase().includes("live at") || albums[i].name.toLowerCase().includes("live from")) {
+          priority--
+        }
+        if (albums[i].name.toLowerCase().includes("reimagined")) {
+          priority--
+        }
+        track.priority = priority
+
+        let existingTrackIndex = tracks.findIndex(existingTrack => {
+          return existingTrack.name === track.name &&
+          existingTrack.artists.length === track.artists.length &&
+          existingTrack.artists[0].name === track.artists[0].name &&
+          existingTrack.duration_ms === track.duration_ms
+        })
+
+        if (existingTrackIndex < 0) {
+          tracks.push(track)
+        } else if (tracks[existingTrackIndex].priority <= track.priority) {
+          tracks.splice(existingTrackIndex, 1)
+          tracks.push(track)
+        }
+      }
+    }
+    resolve(tracks)
+  })
+}
+
 const tracks_by_album = async (albums) => { 
   return new Promise(async (resolve) => {
     var playlistPosition = 0
@@ -130,4 +183,4 @@ const track_delete_post = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { tracks_by_album, get_old_tracks, track_list, track_delete_get, track_delete_post }
+module.exports = { tracks_by_album, get_old_tracks, track_list, track_delete_get, track_delete_post, artist_tracks_by_album }

@@ -1,0 +1,24 @@
+extends layout
+
+block content
+  h1= title
+
+  p Playlist Updated!
+
+  p The total number of tracks added is: !{tracks.length}
+
+  if state === "updated" && tracks.length > 0
+    table(border='1')
+      tr 
+        th Name 
+        th Artist 
+        th Album
+        th Delete?
+      each track in tracks
+        tr
+          td #[a( href=track.url ) #{track.name}]
+          td #{track.album.artist.name}
+          td #{track.album.name}
+          td #[a( href='/tracks'+track.trackurl+'/delete' ) Delete]
+
+    a(href='/tracks') Review All Tracks

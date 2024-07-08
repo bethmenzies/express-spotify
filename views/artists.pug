@@ -4,15 +4,18 @@ block content
   h1= title
 
   p The current number of artists is: !{artist_count}
+  a(href='/artists/add') Add Artist
 
   if artist_list.length
-    ul
+    table(border='1')
+      tr 
+        th Artist 
+        th Artist Run
+        th Delete?
       each artist in artist_list
-        li
-          p. 
-            #{artist.name} #[a( href='/artists'+artist.url+'/delete' ) Delete]
-
+        tr
+          td #{artist.name}
+          td #[a( href='/artists'+artist.url+'/run' ) Run]
+          td #[a( href='/artists'+artist.url+'/delete' ) Delete]
   else
     p There are no artists.
-
-  a(href='/artists/add') Add Artist

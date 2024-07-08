@@ -1,8 +1,9 @@
 const artist_controller = require("../controllers/artistController")
-const { remove_tracks, add_tracks, create_playlist } = require("../controllers/playlistController")
+const { remove_tracks, add_tracks, create_playlist, find_playlist, add_tracks_no_playlist_position } = require("../controllers/playlistController")
 const asyncHandler = require("express-async-handler");
-const recent_albums_by_artist = require('../controllers/albumController.js');
-const { tracks_by_album, get_old_tracks } = require('../controllers/trackController.js');
+const { recent_albums_by_artist, albums_for_artist } = require('../controllers/albumController.js');
+const { tracks_by_album, get_old_tracks, artist_tracks_by_album } = require('../controllers/trackController.js');
+const Artist = require('../models/artist');
 
 const get_date_2_years_ago = () => {
   var date = new Date()
@@ -46,6 +47,31 @@ exports.run = asyncHandler(async (req, res, next) => {
   if (!playlist) {
     res.send("Something went wrong when adding tracks to playlist. Everything will be in the DB though - so try using the create from DB option.")
   } else {
-    res.send(`Playlist ${playlistState}!`);
+    res.render("run", {
+      title: "Run",
+      state: playlistState,
+      tracks: tracks
+    });
   }
 });
+
+exports.runForArtist = async (artist, req, res, next) => {
+  return new Promise(async (resolve) => {
+    let albums = await albums_for_artist(artist.spotify_id)
+    if (albums.length === 0) {
+      return resolve("Something failed when getting recent albums. Please try again.")
+    }
+    let tracks = await artist_tracks_by_album(albums, artist.name);
+    if (tracks === null) {
+      return resolve("Something failed when getting album tracks. Please try again.")
+    }
+    let playlistBody = await create_playlist(artist.name)
+    let playlistId = playlistBody.id
+    let playlist = await add_tracks_no_playlist_position(playlistId, tracks);
+    if (!playlist) {
+      resolve("Something went wrong when adding tracks to playlist. Try again.")
+    } else {
+      resolve(`${artist.name} playlist created!`);
+    }
+  })
+}
