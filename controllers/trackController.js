@@ -3,10 +3,10 @@ const { call_spotify } = require("./spotifyController")
 const { remove_tracks } = require("../controllers/playlistController")
 const asyncHandler = require("express-async-handler");
 
-const get_tracks_by_album = async (albumId) => {
+const get_tracks_by_album = async (albumId, limit, offset) => {
   const options = {
     hostname: 'api.spotify.com',
-    path: `/v1/albums/${albumId}/tracks`,
+    path: `/v1/albums/${albumId}/tracks?limit=${limit}&offset=${offset}`,
     method: 'GET',
     headers: {
         Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
@@ -37,13 +37,20 @@ const artist_tracks_by_album = async (albums, artistName) => {
   return new Promise(async (resolve) => {
     var tracks = []
     for (let i = 0; i < albums.length; i++) {
-      let body = await get_tracks_by_album(albums[i].id)
+      let albumTracks = []
+      let body = await get_tracks_by_album(albums[i].id, 1, 0)
       if (body === null) {
         return resolve(null)
       }
+      let total = body.total
+      let iterations = Math.floor(total/50)
+      for (let j = 0; j <= iterations; j++) {
+        let body = await get_tracks_by_album(albums[i].id, 50, j*50)
+        albumTracks.push(...body.items)
+      }
 
-      for (let j = 0; j < body.items.length; j++) {
-        let track = body.items[j]
+      for (let j = 0; j < albumTracks.length; j++) {
+        let track = albumTracks[j]
 
         if (!track.artists.map(artist => artist.name.toLowerCase()).includes(artistName.toLowerCase())) {
           continue
@@ -59,10 +66,13 @@ const artist_tracks_by_album = async (albums, artistName) => {
         if (albums[i].name.toLowerCase().includes("deluxe edition") || albums[i].name.toLowerCase().includes("special edition") || albums[i].name.toLowerCase().includes("extended version") || albums[i].name.toLowerCase().includes("deluxe")) {
           priority++
         }
+        if (albums[i].name.toLowerCase().includes("greatest hits")) {
+          priority--
+        }
         if (albums[i].name.toLowerCase().includes("live in") || albums[i].name.toLowerCase().includes("live at") || albums[i].name.toLowerCase().includes("live from")) {
           priority--
         }
-        if (albums[i].name.toLowerCase().includes("reimagined")) {
+        if (albums[i].name.toLowerCase().includes("reimagined") || albums[i].name.toLowerCase().includes("reworked")) {
           priority--
         }
         track.priority = priority
@@ -91,13 +101,20 @@ const tracks_by_album = async (albums) => {
     var playlistPosition = 0
     var tracks = [];
     for (let i = 0; i < albums.length; i++) {
-      let body = await get_tracks_by_album(albums[i].id);
+      var albumTracks = []
+      let body = await get_tracks_by_album(albums[i].id, 1, 0)
       if (body === null) {
-        return resolve(null);
+        return resolve(null)
+      }
+      let total = body.total
+      let iterations = Math.floor(total/50)
+      for (let j = 0; j <= iterations; j++) {
+        let body = await get_tracks_by_album(albums[i].id, 50, j*50)
+        albumTracks.push(...body.items)
       }
 
-      for (let j = 0; j < body.items.length; j++) {
-        let track = body.items[j];
+      for (let j = 0; j < albumTracks.length; j++) {
+        let track = albumTracks[j];
         if (!track.artists.map(artist => artist.name.toLowerCase()).includes(albums[i].artist.name.toLowerCase())) {
           continue
         }
