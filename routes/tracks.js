@@ -9,4 +9,7 @@ router.get("/", track_controller.track_list);
 router.get("/track/:id/delete", track_controller.track_delete_get);
 router.post("/track/:id/delete", track_controller.track_delete_post);
 
+router.get("/track/:id/add", track_controller.track_add_get)
+router.post("/track/:id/add", track_controller.track_add_post)
+
 module.exports = router;

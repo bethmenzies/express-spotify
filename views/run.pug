@@ -13,12 +13,14 @@ block content
         th Name 
         th Artist 
         th Album
+        th Add to Playlist?
         th Delete?
       each track in tracks
         tr
           td #[a( href=track.url ) #{track.name}]
           td #{track.album.artist.name}
           td #{track.album.name}
+          td #[a( href='tracks'+track.trackurl+'/add' ) Add to Playlist]
           td #[a( href='/tracks'+track.trackurl+'/delete' ) Delete]
 
     a(href='/tracks') Review All Tracks

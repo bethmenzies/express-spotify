@@ -1,0 +1,13 @@
+extends layout
+
+block content
+
+  h1 #{title}: #{track.name}
+
+  p This will add this track to the artist's playlist.
+
+  form(method='POST')
+    div.form-group
+      input#trackid.form-control(type='hidden', name='trackid', value=track._id )
+
+    button.btn.btn-primary(type='submit') Add

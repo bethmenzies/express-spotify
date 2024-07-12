@@ -1,6 +1,6 @@
 const Track = require("../models/playlistTrack");
 const { call_spotify } = require("./spotifyController")
-const { remove_tracks } = require("../controllers/playlistController")
+const { remove_tracks, find_playlist, add_tracks_no_playlist_position } = require("../controllers/playlistController")
 const asyncHandler = require("express-async-handler");
 
 const get_tracks_by_album = async (albumId, limit, offset) => {
@@ -171,6 +171,31 @@ const track_list = asyncHandler(async (req, res, next) => {
   });
 });
 
+const track_add_get = asyncHandler(async (req, res, next) => {
+  const track = await Track.findById(req.params.id).exec()
+
+  if (track === null) {
+    res.redirect("/run")
+  }
+
+  res.render("track_add", {
+    title: "Add Track",
+    track: track
+  })
+})
+
+const track_add_post = asyncHandler(async (req, res, next) => {
+  let track = await Track.findById(req.body.trackid).exec()
+  let artist = track.album.artist.name
+  let playlistId = await find_playlist(artist)
+  let playlist = await add_tracks_no_playlist_position(playlistId, [track])
+  if (!playlist) {
+    resolve("Something went wrong when adding track to playlist. Try again.")
+  } else {
+    res.redirect("/tracks")
+  }
+})
+
 const track_delete_get = asyncHandler(async (req, res, next) => {
   const track = await Track.findById(req.params.id).exec();
 
@@ -200,4 +225,4 @@ const track_delete_post = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { tracks_by_album, get_old_tracks, track_list, track_delete_get, track_delete_post, artist_tracks_by_album }
+module.exports = { tracks_by_album, get_old_tracks, track_list, track_delete_get, track_delete_post, artist_tracks_by_album, track_add_get, track_add_post }
