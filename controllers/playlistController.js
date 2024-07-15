@@ -62,6 +62,7 @@ const create_playlist = async (playlistName) => {
 const remove_tracks = async (tracks) => {
   return new Promise(async (resolve) => {
     var uriObjects = []
+    var allResponses = true
     for (let i = 0; i < tracks.length; i++) {
       const uriObject = {
         uri: tracks[i].uri
@@ -72,7 +73,7 @@ const remove_tracks = async (tracks) => {
 
     for (let i = 0; i < allBodies.length; i++) {
       const body = JSON.stringify({
-        "tracks": uriObjects
+        "tracks": allBodies[i]
       })
 
       const options = {
@@ -88,11 +89,10 @@ const remove_tracks = async (tracks) => {
 
       let response = await call_spotify(options, body);
       if (response === null) {
-        return resolve(false)
-      } else {
-        return resolve(true)
+        allResponses = false
       }
     }
+    return resolve(allResponses)
   })
 }
 

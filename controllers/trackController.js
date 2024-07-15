@@ -72,6 +72,9 @@ const artist_tracks_by_album = async (albums, artistName) => {
         if (albums[i].name.toLowerCase().includes("live in") || albums[i].name.toLowerCase().includes("live at") || albums[i].name.toLowerCase().includes("live from")) {
           priority--
         }
+        if (albums[i].name.toLowerCase().includes("anniversary")) {
+          priority--
+        }
         if (albums[i].name.toLowerCase().includes("reimagined") || albums[i].name.toLowerCase().includes("reworked")) {
           priority--
         }

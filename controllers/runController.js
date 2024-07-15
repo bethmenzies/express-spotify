@@ -1,5 +1,5 @@
 const artist_controller = require("../controllers/artistController")
-const { remove_tracks, add_tracks, create_playlist, find_playlist, add_tracks_no_playlist_position } = require("../controllers/playlistController")
+const { remove_tracks, add_tracks, create_playlist, add_tracks_no_playlist_position } = require("../controllers/playlistController")
 const asyncHandler = require("express-async-handler");
 const { recent_albums_by_artist, albums_for_artist } = require('../controllers/albumController.js');
 const { tracks_by_album, get_old_tracks, artist_tracks_by_album } = require('../controllers/trackController.js');
@@ -15,10 +15,11 @@ const get_date_2_years_ago = () => {
 
 exports.run = asyncHandler(async (req, res, next) => {
   const date = get_date_2_years_ago()
+  let removedTracks
   if (process.env.PLAYLIST_ID) {
-    let tracks = await get_old_tracks(date)
-    if (tracks.length > 0) {
-      remove_tracks(tracks);
+    removedTracks = await get_old_tracks(date)
+    if (removedTracks.length > 0) {
+      remove_tracks(removedTracks);
     }
   }
   await artist_controller.get_spotify_ids();
@@ -50,6 +51,7 @@ exports.run = asyncHandler(async (req, res, next) => {
     res.render("run", {
       title: "Run",
       state: playlistState,
+      removedTracks: removedTracks,
       tracks: tracks
     });
   }

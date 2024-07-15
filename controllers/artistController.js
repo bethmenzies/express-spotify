@@ -71,12 +71,20 @@ exports.artist_add_post = [
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
 
-    const artist = new Artist({ name: req.body.name });
+    let body = await get_spotify_id_for_artist(req.body.name);
+    if (body.artists.items.length === 0) {
+      res.send(`No results for ${req.body.name} in Spotify`);
+    }
+    let spotifyId = body.artists.items.find(itemArtist => req.body.name.toLowerCase() === itemArtist.name.toLowerCase()).id;
+    const new_artist = new Artist({
+      name: req.body.name,
+      spotify_id: spotifyId
+    });
 
     if (!errors.isEmpty()) {
       res.render("artist_form", {
         title: "Create Artist",
-        artist: artist,
+        artist: new_artist,
         errors: errors.array(),
       });
       return;
@@ -87,7 +95,7 @@ exports.artist_add_post = [
       if (artistExists) {
         res.redirect("/artists");
       } else {
-        await artist.save();
+        await new_artist.save();
         res.redirect("/artists");
       }
     }

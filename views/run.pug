@@ -6,6 +6,19 @@ block content
   p Playlist Updated!
 
   p The total number of tracks added is: !{tracks.length}
+  p The total number of tracks removed is: !{removedTracks.length}
+
+  if removedTracks.length > 0
+    table(border='1')
+      tr 
+        th Name 
+        th Artist 
+        th Album 
+      each track in removedTracks 
+        tr 
+          td #[a( href=track.url ) #{track.name}]
+          td #{track.album.artist.name}
+          td #{track.album.name}
 
   if state === "updated" && tracks.length > 0
     table(border='1')
