@@ -3,12 +3,16 @@ extends layout
 block content
   h1= title
 
-  p Playlist Updated!
-
-  p The total number of tracks added is: !{tracks.length}
-  p The total number of tracks removed is: !{removedTracks.length}
+  if error !== null
+    p Playlist not #{state}.
+    p= error
+  else if state === "nothing"
+    p Nothing new to add. See you again soon.
+  else
+    p Playlist #{state}.
 
   if removedTracks.length > 0
+    p The total number of tracks removed is: !{removedTracks.length}
     table(border='1')
       tr 
         th Name 
@@ -21,19 +25,18 @@ block content
           td #{track.album.name}
 
   if state === "updated" && tracks.length > 0
+    p The total number of tracks added is: !{tracks.length}
     table(border='1')
       tr 
         th Name 
         th Artist 
         th Album
-        th Add to Playlist?
         th Delete?
       each track in tracks
         tr
           td #[a( href=track.url ) #{track.name}]
           td #{track.album.artist.name}
           td #{track.album.name}
-          td #[a( href='tracks'+track.trackurl+'/add' ) Add to Playlist]
           td #[a( href='/tracks'+track.trackurl+'/delete' ) Delete]
 
-    a(href='/tracks') Review All Tracks
+  a(href='/tracks') Review All Tracks

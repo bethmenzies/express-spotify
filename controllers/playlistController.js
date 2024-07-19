@@ -33,7 +33,11 @@ const find_playlist = async (playlistName) => {
     playlists.push(...body.items)
   }
   let matchingPlaylist = playlists.filter(playlist => playlist.name === playlistName)
-  return matchingPlaylist.id
+  if (matchingPlaylist.length === 0) {
+    return null
+  } else {
+    return matchingPlaylist[0].id
+  }
 }
 
 const create_playlist = async (playlistName) => {
@@ -93,6 +97,31 @@ const remove_tracks = async (tracks) => {
       }
     }
     return resolve(allResponses)
+  })
+}
+
+const add_tracks_to_artist_playlists = async (tracks) => {
+  return new Promise(async (resolve) => {
+    let allSuccess = true
+    let tracksGroupedByArtist = Object.values(
+      tracks.reduce((acc, current) => {
+          acc[current.album.artist.name] = acc[current.album.artist.name] ?? [];
+          acc[current.album.artist.name].push(current);
+          return acc;
+      }, {})
+    );
+    for (let i = 0; i < tracksGroupedByArtist.length; i++) {
+      let artist = tracksGroupedByArtist[i][0].album.artist.name
+      let playlistId = await find_playlist(artist)
+      if (playlistId === null) {
+        continue
+      }
+      let playlist = await add_tracks_no_playlist_position(playlistId, tracksGroupedByArtist[i])
+      if (!playlist) {
+        allSuccess = false
+      }
+    }
+    return resolve(allSuccess)
   })
 }
 
@@ -168,4 +197,4 @@ const call_add_tracks_to_playlist = async (playlistId, body) => {
   await call_spotify(options, body);
 }
 
-module.exports = { add_tracks, add_tracks_from_db, remove_tracks, create_playlist, find_playlist, add_tracks_no_playlist_position }
+module.exports = { add_tracks, add_tracks_from_db, remove_tracks, create_playlist, add_tracks_no_playlist_position, add_tracks_to_artist_playlists }
