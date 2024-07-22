@@ -99,59 +99,74 @@ const artist_tracks_by_album = async (albums, artistName) => {
   })
 }
 
-const tracks_by_album = async (albums) => { 
-  return new Promise(async (resolve) => {
-    var playlistPosition = 0
-    var tracks = [];
-    for (let i = 0; i < albums.length; i++) {
-      var albumTracks = []
-      let body = await get_tracks_by_album(albums[i].id, 1, 0)
+const get_album_tracks = async (albums) => {
+  var playlistPosition = 0
+  var tracks = [];
+  const result = await Promise.all(
+    albums.map(async (album) => {
+      let body = await get_tracks_by_album(album.id, 1, 0)
       if (body === null) {
-        return resolve(null)
+        return []
       }
       let total = body.total
       let iterations = Math.floor(total/50)
       for (let j = 0; j <= iterations; j++) {
-        let body = await get_tracks_by_album(albums[i].id, 50, j*50)
-        albumTracks.push(...body.items)
+        let body = await get_tracks_by_album(album.id, 50, j*50)
+        body.items.map(track => track.albumInfo = {
+          name: album.name,
+          spotify_id: album.id,
+          release_date: album.release_date,
+          artist: {
+            name: album.artist.name,
+            spotify_id: album.artist.spotify_id
+          }
+        })
+        tracks.push(...body.items)
+      }
+    })
+  )
+  return tracks
+}
+
+const tracks_by_album = async (albums) => { 
+  let tracks = await get_album_tracks(albums)
+  
+  return new Promise(async (resolve) => {
+    for (let j = 0; j < tracks.length; j++) {
+      let track = tracks[j];
+      if (!track.artists.map(artist => artist.name.toLowerCase()).includes(track.albumInfo.artist.name.toLowerCase())) {
+        continue
       }
 
-      for (let j = 0; j < albumTracks.length; j++) {
-        let track = albumTracks[j];
-        if (!track.artists.map(artist => artist.name.toLowerCase()).includes(albums[i].artist.name.toLowerCase())) {
-          continue
-        }
-
-        const existingTrack = await Track.find({ uri: track.uri, 'album.artist.name': albums[i].artist.name }).exec();
-        if (existingTrack.length === 0) {
-          const new_track = new Track({
-            name: track.name,
-            spotify_id: track.id,
-            uri: track.uri,
-            url: track.external_urls.spotify,
-            album: {
-              name: albums[i].name,
-              spotify_id: albums[i].id,
-              release_date: albums[i].release_date,
-              artist: {
-                name: albums[i].artist.name,
-                spotify_id: albums[i].artist.spotify_id
-              }
-            },
-            track_number: track.track_number,
-            playlist_position: playlistPosition,
-            to_include: true
-          });
-          await new_track.save();
-          tracks.push(new_track)
+      const existingTrack = await Track.find({ uri: track.uri, 'album.artist.name': track.albumInfo.artist.name }).exec();
+      if (existingTrack.length === 0) {
+        const new_track = new Track({
+          name: track.name,
+          spotify_id: track.id,
+          uri: track.uri,
+          url: track.external_urls.spotify,
+          album: {
+            name: track.albumInfo.name,
+            spotify_id: track.albumInfo.id,
+            release_date: track.albumInfo.release_date,
+            artist: {
+              name: track.albumInfo.artist.name,
+              spotify_id: track.albumInfo.artist.spotify_id
+            }
+          },
+          track_number: track.track_number,
+          playlist_position: playlistPosition,
+          to_include: true
+        });
+        await new_track.save();
+        tracks.push(new_track)
+        playlistPosition++
+      } else {
+        if (existingTrack[0].to_include) {
+          await Track.findByIdAndUpdate(existingTrack[0]._id, { playlist_position: playlistPosition}).exec();
           playlistPosition++
-        } else {
-          if (existingTrack[0].to_include) {
-            await Track.findByIdAndUpdate(existingTrack[0]._id, { playlist_position: playlistPosition}).exec();
-            playlistPosition++
-          }
-          continue;
         }
+        continue;
       }
     }
     resolve(tracks);
