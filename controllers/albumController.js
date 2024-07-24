@@ -37,9 +37,9 @@ const albums_for_artist = async (artistId) => {
 }
 
 const get_artists_albums = async (artists) => {
-  var albums = []
   const result = await Promise.all(
     artists.map(async (artist) => {
+      let albums = []
       let body = await get_albums_by_artist(artist.spotify_id, 1, 0)
       if (body === null) {
         return [];
@@ -54,9 +54,10 @@ const get_artists_albums = async (artists) => {
         })
         albums.push(...body.items)
       }
+      return albums
     })
   )
-  return albums
+  return result
 }
 
 const chunkArray = (array, chunkSize) => {
@@ -73,15 +74,20 @@ const recent_albums_by_artist = async (date) => {
   .sort({ name: 1 })
   .exec();
 
-  let chunkedArray = chunkArray(allArtistsWithSpotifyIds, 1)
   var albums = []
-  chunkedArray.forEach(async (chunk) => {
-    let albumBatch = await get_artists_albums(chunk)
-    albums.push(...albumBatch)
-  })
+
+  let split = Math.ceil(allArtistsWithSpotifyIds.length/2)
+  let firsthalfartists = allArtistsWithSpotifyIds.slice(0, split)
+  let secondhalfartists = allArtistsWithSpotifyIds.slice(split + 1)
+
+  let firsthalfalbums = await get_artists_albums(firsthalfartists)
+  let lasthalfalbums = await get_artists_albums(secondhalfartists)
+
+  albums.push(...firsthalfalbums)
+  albums.push(...lasthalfalbums)
 
   return new Promise(async (resolve) => {
-    let recentAlbums = albums
+    let recentAlbums = albums.flat()
       .filter(album => !album.artists.map(artist => artist.name.toLowerCase()).includes("Various Artists".toLowerCase()))
       .filter(album => { return album.release_date > date })
       .sort((a,b) => (a.release_date > b.release_date) ? 1 : ((b.release_date > a.release_date) ? -1 : 0))

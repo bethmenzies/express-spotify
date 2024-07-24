@@ -101,9 +101,9 @@ const artist_tracks_by_album = async (albums, artistName) => {
 
 const get_album_tracks = async (albums) => {
   var playlistPosition = 0
-  var tracks = [];
   const result = await Promise.all(
     albums.map(async (album) => {
+      let tracks = []
       let body = await get_tracks_by_album(album.id, 1, 0)
       if (body === null) {
         return []
@@ -123,13 +123,24 @@ const get_album_tracks = async (albums) => {
         })
         tracks.push(...body.items)
       }
+      return tracks
     })
   )
-  return tracks
+  return result
 }
 
 const tracks_by_album = async (albums) => { 
-  let tracks = await get_album_tracks(albums)
+  var tracks = []
+
+  let split = Math.ceil(albums.length/2)
+  let firsthalfalbums = albums.slice(0, split)
+  let secondhalfalbums = albums.slice(split + 1)
+
+  let firsthalftracks = await get_album_tracks(firsthalfalbums)
+  let secondhalftracks = await get_album_tracks(secondhalfalbums)
+  
+  tracks.push(...firsthalftracks)
+  tracks.push(...secondhalftracks)
   
   return new Promise(async (resolve) => {
     for (let j = 0; j < tracks.length; j++) {
