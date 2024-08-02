@@ -4,7 +4,7 @@ const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const { call_spotify } = require("./spotifyController");
 const { remove_tracks } = require("./playlistController");
-const runForArtist = require("./runController")
+const { runForArtist } = require("./runController")
 
 exports.run_for_artist_get = asyncHandler(async (req, res, next) => {
   const artist = await Artist.findById(req.params.id).exec();
