@@ -3,7 +3,6 @@ const { add_tracks, create_playlist, add_tracks_no_playlist_position, add_tracks
 const asyncHandler = require("express-async-handler");
 const { recent_albums_by_artist, albums_for_artist } = require('../controllers/albumController.js');
 const { tracks_by_album, remove_old_tracks, artist_tracks_by_album } = require('../controllers/trackController.js');
-const Artist = require('../models/artist');
 
 const get_date_2_years_ago = () => {
   var date = new Date()
@@ -13,7 +12,7 @@ const get_date_2_years_ago = () => {
   return date.toISOString().split('T')[0]
 }
 
-exports.run = asyncHandler(async (req, res, next) => {
+const runForLatestTracks = asyncHandler(async (req, res, next) => {
   let playlistState
   if (process.env.PLAYLIST_ID) {
     playlistState = "updated"
@@ -98,7 +97,7 @@ exports.run = asyncHandler(async (req, res, next) => {
   }
 });
 
-exports.runForArtist = async (artist, req, res, next) => {
+const runForArtist = async (artist, req, res, next) => {
   return new Promise(async (resolve) => {
     let albums = await albums_for_artist(artist.spotify_id)
     if (albums.length === 0) {
@@ -118,3 +117,5 @@ exports.runForArtist = async (artist, req, res, next) => {
     }
   })
 }
+
+module.exports = { runForLatestTracks, runForArtist }

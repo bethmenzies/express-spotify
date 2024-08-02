@@ -33,6 +33,8 @@ const remove_old_tracks = async (date) => {
 
       let oldTracksInPlaylist = oldTracks.filter(track => track.to_include)
       return resolve(oldTracksInPlaylist)
+    } else {
+      return resolve([])
     }
   });
 }
