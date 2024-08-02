@@ -16,20 +16,24 @@ const get_tracks_by_album = async (albumId, limit, offset) => {
   return await call_spotify(options);
 }
 
-const get_old_tracks = async (date) => {
+const remove_old_tracks = async (date) => {
   return new Promise(async (resolve) => {
-    const allTracks = await Track.find({}, "uri album.release_date").exec();
+    const allTracks = await Track.find({}, "uri to_include album.release_date name url album.artist.name album.name").exec();
 
     let oldTracks = allTracks.filter(track => {
       return track.album.release_date < date
     });
-  
-    for (let i = 0; i < oldTracks.length; i++) {
-      await Track.findOneAndDelete({ uri: oldTracks[i].uri }).exec();
-    }
 
-    let oldTracksInPlaylist = oldTracks.filter(track => track.to_include)
-    return resolve(oldTracksInPlaylist)
+    if (oldTracks.length > 0) {
+      remove_tracks(oldTracks);
+  
+      for (let i = 0; i < oldTracks.length; i++) {
+        await Track.findOneAndDelete({ uri: oldTracks[i].uri }).exec();
+      }
+
+      let oldTracksInPlaylist = oldTracks.filter(track => track.to_include)
+      return resolve(oldTracksInPlaylist)
+    }
   });
 }
 
@@ -203,4 +207,4 @@ const track_delete_post = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { tracks_by_album, get_old_tracks, track_list, track_delete_get, track_delete_post, artist_tracks_by_album }
+module.exports = { tracks_by_album, remove_old_tracks, track_list, track_delete_get, track_delete_post, artist_tracks_by_album }
