@@ -60,7 +60,7 @@ const recent_albums_by_artist = async (date) => {
       let recentAlbums = items
       .filter(album => !album.artists.map(artist => artist.name.toLowerCase()).includes("Various Artists".toLowerCase()))
       .filter(album => {
-        return album.release_date > date
+        return album.release_date >= date
       })
       .sort((a,b) => (a.release_date > b.release_date) ? 1 : ((b.release_date > a.release_date) ? -1 : 0))
   
