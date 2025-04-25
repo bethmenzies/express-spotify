@@ -63,7 +63,7 @@ const create_playlist = async (playlistName) => {
   return await call_spotify(options, body);
 }
 
-const remove_tracks = async (tracks) => {
+const remove_tracks = async (tracks, playlistId) => {
   return new Promise(async (resolve) => {
     var uriObjects = []
     var allResponses = true
@@ -82,7 +82,7 @@ const remove_tracks = async (tracks) => {
 
       const options = {
         hostname: 'api.spotify.com',
-        path: `/v1/playlists/${process.env.PLAYLIST_ID}/tracks`,
+        path: `/v1/playlists/${playlistId}/tracks`,
         method: 'DELETE',
         headers: {
             Authorization: 'Bearer ' + process.env.ACCESS_TOKEN,
@@ -148,7 +148,9 @@ const add_tracks_no_playlist_position = async (playlistId, tracks) => {
 const add_tracks_from_db = async (playlistId) => {
   return new Promise(async (resolve) => {
     let allSuccess = true
-    allTracks = await Track.find({}, 'playlist_position uri to_include album.release_date album.artist.name').exec();
+    allTracks = await Track.find({}, 'playlist_position uri to_include album.release_date album.artist.name')
+      .sort({ 'playlist_position': 1 })
+      .exec();
     const allUris = allTracks.filter(track => track.to_include).map(track => track.uri)
     const allBodies = chunkArray(allUris, 100)
 

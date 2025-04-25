@@ -6,7 +6,7 @@ const { call_spotify } = require("./spotifyController");
 const { remove_tracks } = require("./playlistController");
 const { runForArtist } = require("./runController")
 
-exports.run_for_artist_get = asyncHandler(async (req, res, next) => {
+const run_for_artist_get = asyncHandler(async (req, res, next) => {
   const artist = await Artist.findById(req.params.id).exec();
 
   if (artist === null) {
@@ -19,56 +19,71 @@ exports.run_for_artist_get = asyncHandler(async (req, res, next) => {
   })
 })
 
-exports.run_for_artist_post = asyncHandler(async (req, res, next) => {
+const run_for_artist_post = asyncHandler(async (req, res, next) => {
   const artist = await Artist.findById(req.params.id).exec();
   let completedString = await runForArtist(artist)
   return res.send(completedString)
 
 })
 
-exports.artist_delete_get = asyncHandler(async (req, res, next) => {
+const artist_delete_get = asyncHandler(async (req, res, next) => {
+  let watchlist = req.query.watchlist
   const artist = await Artist.findById(req.params.id).exec();
 
   if (artist === null) {
-    res.redirect("/artists");
+    res.redirect("/artists?watchlist=" + watchlist);
   }
 
   res.render("artist_delete", {
     title: "Delete Artist",
-    artist: artist
+    artist: artist,
+    watchlist: watchlist
   });
 });
 
-exports.artist_delete_post = asyncHandler(async (req, res, next) => {
+const artist_delete_post = asyncHandler(async (req, res, next) => {
+  // TODO: delete only for the deleting artist
+  let watchlist = req.query.watchlist
   let artist = await Artist.findById(req.body.artistid).exec();
   let tracks = await Track.find({ 'album.artist.name': artist.name }).exec();
+  let playlistId
+  if (watchlist === 'true') {
+    playlistId = process.env.WATCHLIST_PLAYLIST_ID
+  } else {
+    playlistId = process.env.PLAYLIST_ID
+  }
 
-  if (process.env.PLAYLIST_ID) {
-    let isDeleted = await remove_tracks(tracks)
+  if (playlistId) {
+    let isDeleted = await remove_tracks(tracks, playlistId)
     if (isDeleted) {
       await Artist.findByIdAndDelete(req.body.artistid).exec();
       await Track.deleteMany({ 'album.artist.name': artist.name }).exec();
-      res.redirect("/artists");
+      res.redirect("/artists?watchlist=" + watchlist);
     } else {
       res.send("Something failed when deleting artist tracks from playlist. Please try to delete the artist again.")
     }
   } else {
     await Artist.findByIdAndDelete(req.body.artistid).exec();
     await Track.deleteMany({ 'album.artist.name': artist.name }).exec();
-    res.redirect("/artists");
+    res.redirect("/artists?watchlist=" + watchlist);
   }
 });
 
-exports.artist_add_get = (req, res, next) => {
-  res.render("artist_form", { title: "Add Artist" });
+const artist_add_get = (req, res, next) => {
+  let watchlist = req.query.watchlist
+  res.render("artist_form", { 
+    title: "Add Artist",
+    watchlist: watchlist
+   });
 };
 
-exports.artist_add_post = [
+const artist_add_post = [
   body("name", "Artist name must contain at least 3 characters")
     .trim()
     .isLength({ min: 3 }),
 
   asyncHandler(async (req, res, next) => {
+    let watchlist = req.query.watchlist
     const errors = validationResult(req);
 
     let body = await get_spotify_id_for_artist(req.body.name);
@@ -78,7 +93,8 @@ exports.artist_add_post = [
     let spotifyId = body.artists.items.find(itemArtist => req.body.name.toLowerCase() === itemArtist.name.toLowerCase()).id;
     const new_artist = new Artist({
       name: req.body.name,
-      spotify_id: spotifyId
+      spotify_id: spotifyId,
+      watchlist: watchlist
     });
 
     if (!errors.isEmpty()) {
@@ -86,33 +102,36 @@ exports.artist_add_post = [
         title: "Create Artist",
         artist: new_artist,
         errors: errors.array(),
+        watchlist: watchlist
       });
       return;
     } else {
-      const artistExists = await Artist.findOne({ name: req.body.name })
+      const artistExists = await Artist.findOne({ name: req.body.name, watchlist: watchlist })
         .collation({ locale: "en", strength: 2 })
         .exec();
       if (artistExists) {
-        res.redirect("/artists");
+        res.redirect("/artists?watchlist=" + watchlist);
       } else {
         await new_artist.save();
-        res.redirect("/artists");
+        res.redirect("/artists?watchlist=" + watchlist);
       }
     }
   })
 ];
 
-exports.artist_list = asyncHandler(async (req, res, next) => {
-  const numArtists = await Artist.countDocuments({}).exec();
+const artist_list = asyncHandler(async (req, res, next) => {
+  let watchlist = req.query.watchlist
+  const numArtists = await Artist.countDocuments({ watchlist: watchlist }).exec();
 
-  const allArtists = await Artist.find({}, "name")
+  const allArtists = await Artist.find({ watchlist: watchlist }, "name")
     .sort({ name: 1 })
     .exec();
 
   res.render("artists", { 
       title: "Artists",
       artist_count: numArtists,
-      artist_list: allArtists 
+      artist_list: allArtists,
+      watchlist: watchlist 
   });
 });
 
@@ -133,8 +152,8 @@ const get_spotify_id_for_artist = async (artistName) => {
   return await call_spotify(options);
 }
 
-exports.get_spotify_ids = async () => {
-  const allArtists = await Artist.find({}, "name spotify_id").sort({ name: 1 }).exec();
+const get_spotify_ids = async (watchlist) => {
+  const allArtists = await Artist.find({ watchlist: watchlist }, "name spotify_id").sort({ name: 1 }).exec();
 
   for (let i = 0; i < allArtists.length; i++) {
     let artist = allArtists[i]
@@ -148,9 +167,12 @@ exports.get_spotify_ids = async () => {
       const new_artist = new Artist({
         name: artist.name,
         spotify_id: spotifyId,
+        watchlist: watchlist,
         _id: artist.id
       });
       await Artist.findByIdAndUpdate(artist.id, new_artist, {}).exec();
     }
   }
 }
+
+module.exports = { run_for_artist_get, run_for_artist_post, artist_delete_get, artist_delete_post, artist_add_get, artist_add_post, artist_list, get_spotify_id_for_artist, get_spotify_ids }

@@ -37,6 +37,6 @@ block content
           td #[a( href=track.url ) #{track.name}]
           td #{track.album.artist.name}
           td #{track.album.name}
-          td #[a( href='/tracks'+track.trackurl+'/delete' ) Delete]
+          td #[a( href='/tracks'+track.trackurl+'/delete?watchlist=' + watchlist ) Delete]
 
-  a(href='/tracks') Review All Tracks
+  a(href='/tracks?watchlist=' + watchlist) Review All Tracks

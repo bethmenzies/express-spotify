@@ -4,7 +4,8 @@ const Schema = mongoose.Schema;
 
 const TrackArtistSchema = new Schema({
   name: { type: String, required: true, maxLength: 100 },
-  spotify_id: { type: String, maxLength: 100 }
+  spotify_id: { type: String, maxLength: 100 },
+  watchlist: { type: Boolean, required: true }
 });
 
 const TrackAlbumSchema = new Schema({
@@ -22,7 +23,8 @@ const TrackSchema = mongoose.Schema({
   album: { type: TrackAlbumSchema, required: true },
   track_number: { type: Number, maxLength: 100 },
   playlist_position: { type: Number, maxLength: 100 },
-  to_include: { type: Boolean }
+  to_include: { type: Boolean },
+  watchlist: { type: Boolean, required: true }
 });
 
 // Virtual for this artist instance URL.

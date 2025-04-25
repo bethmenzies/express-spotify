@@ -1,8 +1,8 @@
-const artist_controller = require("../controllers/artistController")
 const { add_tracks, create_playlist, add_tracks_no_playlist_position, add_tracks_to_artist_playlists } = require("../controllers/playlistController")
 const asyncHandler = require("express-async-handler");
 const { recent_albums_by_artist, albums_for_artist } = require('../controllers/albumController.js');
 const { tracks_by_album, remove_old_tracks, artist_tracks_by_album } = require('../controllers/trackController.js');
+const { get_spotify_ids } = require('../controllers/artistController.js')
 
 const get_date_2_years_ago = () => {
   var date = new Date()
@@ -13,37 +13,46 @@ const get_date_2_years_ago = () => {
 }
 
 const runForLatestTracks = asyncHandler(async (req, res, next) => {
+  let watchlist = req.query.watchlist
+  let playlistId 
+  if (watchlist === 'true') {
+    playlistId = process.env.WATCHLIST_PLAYLIST_ID
+  } else {
+    playlistId = process.env.PLAYLIST_ID
+  }
   let playlistState
-  if (process.env.PLAYLIST_ID) {
+  if (playlistId) {
     playlistState = "updated"
   } else {
     playlistState = "created"
   }
   const date = get_date_2_years_ago()
   let removedTracks
-  if (process.env.PLAYLIST_ID) {
-    removedTracks = await remove_old_tracks(date)
+  if (playlistId) {
+    removedTracks = await remove_old_tracks(date, watchlist)
   }
-  await artist_controller.get_spotify_ids();
-  let albums = await recent_albums_by_artist(date);
+  //await get_spotify_ids(watchlist);
+  let albums = await recent_albums_by_artist(date, watchlist);
   if (albums.length === 0) {
     res.render("run", {
       title: "Error!",
       state: playlistState,
       error: "Something failed when getting recent albums. Please try again.",
       removedTracks: removedTracks,
-      tracks: []
+      tracks: [],
+      watchlist: watchlist
     });
     return;
   }
-  let tracks = await tracks_by_album(albums);
+  let tracks = await tracks_by_album(albums, watchlist);
   if (tracks === null) {
     res.render("run", {
       title: "Error!",
       state: playlistState,
       error: "Something failed when getting album tracks. Please try again.",
       removedTracks: removedTracks,
-      tracks: []
+      tracks: [],
+      watchlist: watchlist
     });
     return;
   }
@@ -53,25 +62,27 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
       state: "nothing",
       error: null,
       removedTracks: removedTracks,
-      tracks: tracks
+      tracks: tracks,
+      watchlist: watchlist
     });
     return;
   }
-  let playlistId;
-  if (process.env.PLAYLIST_ID) {
-    playlistId = process.env.PLAYLIST_ID;
+  let thisPlaylistId;
+  if (playlistId) {
+    thisPlaylistId = playlistId;
   } else {
     let playlist = await create_playlist();
-    playlistId = playlist.id
+    thisPlaylistId = playlist.id
   }
-  let playlist = await add_tracks(playlistId, tracks);
+  let playlist = await add_tracks(thisPlaylistId, tracks);
   if (!playlist) {
     res.render("run", {
       title: "Error!",
       state: playlistState,
       error: "Something went wrong when adding tracks to playlist. Everything will be in the DB though - so try using the create from DB option.",
       removedTracks: removedTracks,
-      tracks: tracks
+      tracks: tracks,
+      watchlist: watchlist
     });
     return;
   } 
@@ -82,7 +93,8 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
       state: playlistState,
       error: "Something went wrong when adding tracks to artists playlist. You might want to do this manually.",
       removedTracks: removedTracks,
-      tracks: tracks
+      tracks: tracks,
+      watchlist: watchlist
     });
     return;
   } else {
@@ -91,7 +103,8 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
       state: playlistState,
       error: null,
       removedTracks: removedTracks,
-      tracks: tracks
+      tracks: tracks,
+      watchlist: watchlist
     });
     return;
   }

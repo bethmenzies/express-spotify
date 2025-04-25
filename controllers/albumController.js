@@ -36,8 +36,8 @@ const albums_for_artist = async (artistId) => {
   })
 }
 
-const recent_albums_by_artist = async (date) => {
-  const allArtistsWithSpotifyIds = await Artist.find({}, "name spotify_id")
+const recent_albums_by_artist = async (date, watchlist) => {
+  const allArtistsWithSpotifyIds = await Artist.find({ watchlist: watchlist }, "name spotify_id watchlist")
   .sort({ name: 1 })
   .exec();
 
@@ -67,7 +67,8 @@ const recent_albums_by_artist = async (date) => {
       for (let j = 0; j < recentAlbums.length; j++) {
         recentAlbums[j].artist = {
           name: artist.name,
-          spotify_id: artist.spotify_id
+          spotify_id: artist.spotify_id,
+          watchlist: artist.watchlist
         }
       }
       albums = albums.concat(recentAlbums)

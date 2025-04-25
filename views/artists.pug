@@ -4,7 +4,7 @@ block content
   h1= title
 
   p The current number of artists is: !{artist_count}
-  a(href='/artists/add') Add Artist
+  a(href='/artists/add?watchlist=' + watchlist) Add Artist
 
   if artist_list.length
     table(border='1')
@@ -16,6 +16,6 @@ block content
         tr
           td #{artist.name}
           td #[a( href='/artists'+artist.url+'/run' ) Run]
-          td #[a( href='/artists'+artist.url+'/delete' ) Delete]
+          td #[a( href='/artists'+artist.url+'/delete?watchlist=' + watchlist ) Delete]
   else
     p There are no artists.
