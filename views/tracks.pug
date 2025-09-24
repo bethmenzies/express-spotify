@@ -10,12 +10,14 @@ block content
   if track_list.length
     table(border='1')
       tr 
+        th Index
         th Name 
         th Artist 
         th Album
         th Delete?
-      each track in track_list
+      each track, index in track_list
         tr
+          td #{index+1}
           td #[a( href=track.url ) #{track.name}]
           td #{track.album.artist.name}
           td #{track.album.name}

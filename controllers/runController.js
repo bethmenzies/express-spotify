@@ -29,7 +29,7 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
   const date = get_date_2_years_ago()
   let removedTracks
   if (playlistId) {
-    removedTracks = await remove_old_tracks(date, watchlist)
+    removedTracks = await remove_old_tracks(date, watchlist, playlistId)
   }
   //await get_spotify_ids(watchlist);
   let albums = await recent_albums_by_artist(date, watchlist);

@@ -16,7 +16,7 @@ const get_tracks_by_album = async (albumId, limit, offset) => {
   return await call_spotify(options);
 }
 
-const remove_old_tracks = async (date, watchlist) => {
+const remove_old_tracks = async (date, watchlist, playlistId) => {
   return new Promise(async (resolve) => {
     const allTracks = await Track.find({ watchlist: watchlist }, "uri to_include album.release_date name url album.artist.name album.name").exec();
 
@@ -25,7 +25,7 @@ const remove_old_tracks = async (date, watchlist) => {
     });
 
     if (oldTracks.length > 0) {
-      remove_tracks(oldTracks);
+      remove_tracks(oldTracks, playlistId);
   
       for (let i = 0; i < oldTracks.length; i++) {
         await Track.findOneAndDelete({ uri: oldTracks[i].uri }).exec();
