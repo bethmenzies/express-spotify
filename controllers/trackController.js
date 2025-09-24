@@ -39,7 +39,7 @@ const remove_old_tracks = async (date, watchlist, playlistId) => {
   });
 }
 
-const artist_tracks_by_album = async (albums, artistName) => {
+const artist_tracks_by_album = async (albums, artistNames) => {
   return new Promise(async (resolve) => {
     var tracks = []
     for (let i = 0; i < albums.length; i++) {
@@ -58,7 +58,7 @@ const artist_tracks_by_album = async (albums, artistName) => {
       for (let j = 0; j < albumTracks.length; j++) {
         let track = albumTracks[j]
 
-        if (!track.artists.map(artist => artist.name.toLowerCase()).includes(artistName.toLowerCase())) {
+        if (!artistNames.some(el => track.artists.map(artist => artist.name.toLowerCase()).includes(el.toLowerCase()))) {
           continue
         }
 

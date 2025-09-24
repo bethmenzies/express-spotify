@@ -69,6 +69,40 @@ const artist_delete_post = asyncHandler(async (req, res, next) => {
   }
 });
 
+const artist_edit_get = (req, res, next) => {
+  res.render("related_artist_form", {
+    title: "Add Related Artists",
+  })
+}
+
+const artist_edit_post = [
+  body("names", "Artist name must contain at least 3 characters")
+    .trim()
+    .isLength({ min: 3 }),
+
+  asyncHandler(async(req, res, next) => {
+    let watchlist = req.query.watchlist
+    const errors = validationResult(req)
+ 
+    let relatedArtistsObjectArray = []
+    let relatedArtists = req.body.names;
+    let relatedArtistsArray = relatedArtists.split(', ');
+    for (let i = 0; i < relatedArtistsArray.length; i++) {
+      let relatedArtistName = relatedArtistsArray[i]
+      let relatedArtistSpotifyIdBody = await get_spotify_id_for_artist(relatedArtistName)
+      if (relatedArtistSpotifyIdBody.artists.items.length === 0) {
+        res.send(`No results for ${relatedArtistName} in Spotify`);
+      }
+      let relatedArtistSpotifyId = relatedArtistSpotifyIdBody.artists.items.find(itemArtist => relatedArtistName.toLowerCase() === itemArtist.name.toLowerCase()).id;
+      
+      relatedArtistsObjectArray.push({name: relatedArtistName, spotify_id: relatedArtistSpotifyId})
+    }
+
+    await Artist.findByIdAndUpdate(req.params.id, { related_artists: relatedArtistsObjectArray }).exec();
+    res.redirect("/artists?watchlist=" + watchlist);
+  })
+]
+
 const artist_add_get = (req, res, next) => {
   let watchlist = req.query.watchlist
   res.render("artist_form", { 
@@ -86,14 +120,32 @@ const artist_add_post = [
     let watchlist = req.query.watchlist
     const errors = validationResult(req);
 
-    let body = await get_spotify_id_for_artist(req.body.name);
-    if (body.artists.items.length === 0) {
+    let artistSpotifyIdBody = await get_spotify_id_for_artist(req.body.name);
+    if (artistSpotifyIdBody.artists.items.length === 0) {
       res.send(`No results for ${req.body.name} in Spotify`);
     }
-    let spotifyId = body.artists.items.find(itemArtist => req.body.name.toLowerCase() === itemArtist.name.toLowerCase()).id;
+    let artistSpotifyId = artistSpotifyIdBody.artists.items.find(itemArtist => req.body.name.toLowerCase() === itemArtist.name.toLowerCase()).id;
+    
+    let relatedArtistsObjectArray = []
+    let relatedArtists = req.body.related;
+    if (relatedArtists != '') {
+      let relatedArtistsArray = relatedArtists.split(', ');
+      for (let i = 0; i < relatedArtistsArray.length; i++) {
+        let relatedArtistName = relatedArtistsArray[i]
+        let relatedArtistSpotifyIdBody = await get_spotify_id_for_artist(relatedArtistName)
+        if (relatedArtistSpotifyIdBody.artists.items.length === 0) {
+          res.send(`No results for ${relatedArtistName} in Spotify`);
+        }
+        let relatedArtistSpotifyId = relatedArtistSpotifyIdBody.artists.items.find(itemArtist => relatedArtistName.toLowerCase() === itemArtist.name.toLowerCase()).id;
+        
+        relatedArtistsObjectArray.push({name: relatedArtistName, spotify_id: relatedArtistSpotifyId})
+      }
+    }
+    
     const new_artist = new Artist({
       name: req.body.name,
-      spotify_id: spotifyId,
+      spotify_id: artistSpotifyId,
+      related_artists: relatedArtistsObjectArray,
       watchlist: watchlist
     });
 
@@ -123,7 +175,7 @@ const artist_list = asyncHandler(async (req, res, next) => {
   let watchlist = req.query.watchlist
   const numArtists = await Artist.countDocuments({ watchlist: watchlist }).exec();
 
-  const allArtists = await Artist.find({ watchlist: watchlist }, "name")
+  const allArtists = await Artist.find({ watchlist: watchlist })
     .sort({ name: 1 })
     .exec();
 
@@ -175,4 +227,4 @@ const get_spotify_ids = async (watchlist) => {
   }
 }
 
-module.exports = { run_for_artist_get, run_for_artist_post, artist_delete_get, artist_delete_post, artist_add_get, artist_add_post, artist_list, get_spotify_id_for_artist, get_spotify_ids }
+module.exports = { run_for_artist_get, run_for_artist_post, artist_delete_get, artist_delete_post, artist_add_get, artist_add_post, artist_list, get_spotify_id_for_artist, get_spotify_ids, artist_edit_get, artist_edit_post }

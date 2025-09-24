@@ -14,24 +14,25 @@ const get_albums_by_artist = async (artistId, limit, offset) => {
   return await call_spotify(options);
 }
 
-const albums_for_artist = async (artistId) => {
+const albums_for_artists = async (artistAndSpotifyIds) => {
   return new Promise(async (resolve) => {
-    let albums = [] 
-    let body = await get_albums_by_artist(artistId, 1, 0)
-    if (body === null) {
-      return resolve([]);
+    let albums = []
+    for (let i = 0; i < artistAndSpotifyIds.length; i++) {
+      let body = await get_albums_by_artist(artistAndSpotifyIds[i].spotify_id, 1, 0)
+      if (body === null) {
+        return resolve([]);
+      }
+      let total = body.total
+      let iterations = Math.floor(total/50)
+      for (let j = 0; j <= iterations; j++) {
+        let body = await get_albums_by_artist(artistAndSpotifyIds[i].spotify_id, 50, j*50)
+        albums.push(...body.items)
+      }
     }
-    let total = body.total
-    let iterations = Math.floor(total/50)
-    for (let j = 0; j <= iterations; j++) {
-      let body = await get_albums_by_artist(artistId, 50, j*50)
-      albums.push(...body.items)
-    }
-
     albums = albums
     .filter(album => !album.artists.map(artist => artist.name.toLowerCase()).includes("Various Artists".toLowerCase()))
     .sort((a,b) => (a.release_date > b.release_date) ? 1 : ((b.release_date > a.release_date) ? -1 : 0))
-
+  
     resolve(albums)
   })
 }
@@ -77,4 +78,4 @@ const recent_albums_by_artist = async (date, watchlist) => {
   });
 }
 
-module.exports = { recent_albums_by_artist, albums_for_artist }
+module.exports = { recent_albums_by_artist, albums_for_artists }

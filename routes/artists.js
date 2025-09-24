@@ -15,4 +15,7 @@ router.post("/artist/:id/delete", artist_controller.artist_delete_post);
 router.get("/artist/:id/run", artist_controller.run_for_artist_get);
 router.post("/artist/:id/run", artist_controller.run_for_artist_post);
 
+router.get("/artist/:id/edit", artist_controller.artist_edit_get)
+router.post("/artist/:id/edit", artist_controller.artist_edit_post)
+
 module.exports = router;

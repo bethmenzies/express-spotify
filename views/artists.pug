@@ -12,10 +12,18 @@ block content
         th Artist 
         th Artist Run
         th Delete?
+        th Update Related Artists
       each artist in artist_list
+        - var relatedArtistNames = ""
         tr
-          td #{artist.name}
+          each related_artist in artist.related_artists
+            - relatedArtistNames += ' - ' + related_artist.name + '\n'
+          if artist.related_artists.length
+            td #{artist.name}: #[br] #{relatedArtistNames}
+          else 
+            td #{artist.name}
           td #[a( href='/artists'+artist.url+'/run' ) Run]
           td #[a( href='/artists'+artist.url+'/delete?watchlist=' + watchlist ) Delete]
+          td #[a( href='/artists'+artist.url+'/edit?watchlist=' + watchlist) Update]
   else
     p There are no artists.
