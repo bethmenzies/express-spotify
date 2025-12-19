@@ -12,10 +12,12 @@ block content
         th Artist 
         th Artist Run
         th Delete?
+        th Swap?
       each artist in artist_list
         tr
           td #{artist.name}
           td #[a( href='/artists'+artist.url+'/run' ) Run]
           td #[a( href='/artists'+artist.url+'/delete?watchlist=' + watchlist ) Delete]
+          td #[a( href='/artists'+artist.url+'/swap?watchlist=' + watchlist ) Swap]
   else
     p There are no artists.

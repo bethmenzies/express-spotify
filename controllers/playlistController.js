@@ -125,6 +125,27 @@ const add_tracks_to_artist_playlists = async (tracks) => {
   })
 }
 
+const add_included_tracks = async (playlistId, tracks) => {
+  // TODO: add to the right place in the playlist
+  return new Promise(async (resolve) => {
+    let allSuccess = true
+    const allUris = tracks.filter(track => track.to_include).map(track => track.uri)
+    const allBodies = chunkArray(allUris, 100)
+
+    for (let i = 0; i < allBodies.length; i++) {
+      const body = JSON.stringify({
+        "uris": allBodies[i]
+      })
+
+      let result = await call_add_tracks_to_playlist(playlistId, body)
+      if (result === null) {
+        allSuccess = false
+      }
+    }
+    return resolve(allSuccess)
+  })
+}
+
 const add_tracks_no_playlist_position = async (playlistId, tracks) => {
   return new Promise(async (resolve) => {
     let allSuccess = true
@@ -199,4 +220,4 @@ const call_add_tracks_to_playlist = async (playlistId, body) => {
   await call_spotify(options, body);
 }
 
-module.exports = { add_tracks, add_tracks_from_db, remove_tracks, create_playlist, add_tracks_no_playlist_position, add_tracks_to_artist_playlists }
+module.exports = { add_tracks, add_tracks_from_db, remove_tracks, create_playlist, add_tracks_no_playlist_position, add_tracks_to_artist_playlists, add_included_tracks }

@@ -3,7 +3,7 @@ const Track = require("../models/playlistTrack");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const { call_spotify } = require("./spotifyController");
-const { remove_tracks } = require("./playlistController");
+const { remove_tracks, add_tracks_no_playlist_position, add_included_tracks } = require("./playlistController");
 const { runForArtist } = require("./runController")
 
 const run_for_artist_get = asyncHandler(async (req, res, next) => {
@@ -40,6 +40,57 @@ const artist_delete_get = asyncHandler(async (req, res, next) => {
     watchlist: watchlist
   });
 });
+
+const artist_swap_playlist_get = asyncHandler(async (req, res, next) => {
+  let watchlist = req.query.watchlist
+  const artist = await Artist.findById(req.params.id).exec();
+
+  if (artist === null) {
+    res.redirect("/artists?watchlist=" + watchlist);
+  }
+
+  res.render("artist_swap_playlist", {
+    title: "Artist - Swap Playlist",
+    artist: artist,
+    watchlist: watchlist
+  });
+})
+
+const artist_swap_playlist_post = asyncHandler(async (req, res, next) => {
+  let current_watchlist = req.query.watchlist === 'true'
+  let swapped_watchlist = !current_watchlist
+  let artist = await Artist.findById(req.body.artistid).exec();
+  let tracks = await Track.find({ 'album.artist.name': artist.name }).exec();
+  let current_playlistId
+  let swapped_playlistId
+  if (current_watchlist) {
+    current_playlistId = process.env.WATCHLIST_PLAYLIST_ID
+    swapped_playlistId = process.env.PLAYLIST_ID
+  } else {
+    current_playlistId = process.env.PLAYLIST_ID
+    swapped_playlistId = process.env.WATCHLIST_PLAYLIST_ID
+  }
+
+  if (current_playlistId && swapped_playlistId) {
+    let isDeleted = await remove_tracks(tracks, current_playlistId);
+    if (!isDeleted) {
+      res.send("Something failed when deleting artist tracks from playlist. Please try to swap the artist again.")
+    }
+    let isAdded = await add_included_tracks(swapped_playlistId, tracks)
+    if (!isAdded) {
+      res.send("Something failed when adding artist tracks to playlist. Please try to swap the artist again.")
+    }
+    if (isDeleted && isAdded) {
+      await Artist.findByIdAndUpdate(req.body.artistid, {watchlist: swapped_watchlist}).exec();
+      await Track.updateMany({ 'album.artist.name': artist.name },{ $set:{ watchlist: swapped_watchlist } }).exec();
+      res.redirect("/artists?watchlist=" + current_watchlist);
+    }
+  } else {
+    await Artist.findByIdAndUpdate(req.body.artistid, {watchlist: swapped_watchlist}).exec();
+    await Track.updateMany({ 'album.artist.name': artist.name },{ $set:{ watchlist: swapped_watchlist } }).exec();
+    res.redirect("/artists?watchlist=" + current_watchlist);
+  }
+})
 
 const artist_delete_post = asyncHandler(async (req, res, next) => {
   // TODO: delete only for the deleting artist
@@ -175,4 +226,4 @@ const get_spotify_ids = async (watchlist) => {
   }
 }
 
-module.exports = { run_for_artist_get, run_for_artist_post, artist_delete_get, artist_delete_post, artist_add_get, artist_add_post, artist_list, get_spotify_id_for_artist, get_spotify_ids }
+module.exports = { run_for_artist_get, run_for_artist_post, artist_delete_get, artist_delete_post, artist_add_get, artist_add_post, artist_list, get_spotify_id_for_artist, get_spotify_ids, artist_swap_playlist_get, artist_swap_playlist_post }
