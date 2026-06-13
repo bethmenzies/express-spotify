@@ -32,7 +32,7 @@ const find_playlist = async (playlistName) => {
     let body = await get_playlists(50, i*50)
     playlists.push(...body.items)
   }
-  let matchingPlaylist = playlists.filter(playlist => playlist.name === playlistName)
+  let matchingPlaylist = playlists.filter(playlist => playlist.name.toLowerCase() === playlistName.toLowerCase())
   if (matchingPlaylist.length === 0) {
     return null
   } else {

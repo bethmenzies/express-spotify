@@ -131,7 +131,7 @@ const tracks_by_album = async (albums, watchlist) => {
         const existingTrack = await Track.find({ uri: track.uri, 'album.artist.name': albums[i].artist.name, watchlist: watchlist }).exec();
         if (existingTrack.length === 0) {
           const new_track = new Track({
-            name: track.name,
+            name: track.name.substring(0, 100),
             spotify_id: track.id,
             uri: track.uri,
             url: track.external_urls.spotify,
