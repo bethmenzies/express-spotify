@@ -42,6 +42,16 @@ const recent_albums_by_artist = async (date, watchlist) => {
   .sort({ name: 1 })
   .exec();
 
+  const relatedArtistsWithSpotifyIds = await Artist.find({ watchlist: watchlist }, "related_artists")
+  .sort({ name: 1 })
+  .exec();
+
+  for (let i = 0; i < relatedArtistsWithSpotifyIds.length; i++) {
+    for (let j = 0; j < relatedArtistsWithSpotifyIds[i].related_artists.length; j++) {
+      allArtistsWithSpotifyIds.push({name: relatedArtistsWithSpotifyIds[i].related_artists[j].name, spotify_id: relatedArtistsWithSpotifyIds[i].related_artists[j].spotify_id, watchlist: false})
+    }
+  }
+
   return new Promise(async (resolve) => {
     var albums = []
     for (let i = 0; i < allArtistsWithSpotifyIds.length; i++) {

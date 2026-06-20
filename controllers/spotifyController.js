@@ -12,6 +12,8 @@ const call_spotify = async (options, body) => {
           parsedBody = JSON.parse(responseBody + '');
         } catch (err) {
           console.log(err.name);
+          console.log(err)
+          console.log(responseBody)
           parsedBody = responseBody + '';
         }
   
