@@ -166,10 +166,10 @@ const add_tracks_no_playlist_position = async (playlistId, tracks) => {
   })
 }
 
-const add_tracks_from_db = async (playlistId) => {
+const add_tracks_from_db = async (playlistId, watchlist) => {
   return new Promise(async (resolve) => {
     let allSuccess = true
-    allTracks = await Track.find({}, 'playlist_position uri to_include album.release_date album.artist.name')
+    allTracks = await Track.find({ watchlist: watchlist }, 'playlist_position uri to_include album.release_date album.artist.name')
       .sort({ 'playlist_position': 1 })
       .exec();
     const allUris = allTracks.filter(track => track.to_include).map(track => track.uri)
