@@ -39,7 +39,7 @@ const remove_old_tracks = async (date, watchlist, playlistId) => {
   });
 }
 
-const artist_tracks_by_album = async (albums, artistName) => {
+const artist_tracks_by_album = async (albums, artistNames) => {
   return new Promise(async (resolve) => {
     var tracks = []
     for (let i = 0; i < albums.length; i++) {
@@ -58,7 +58,7 @@ const artist_tracks_by_album = async (albums, artistName) => {
       for (let j = 0; j < albumTracks.length; j++) {
         let track = albumTracks[j]
 
-        if (!track.artists.map(artist => artist.name.toLowerCase()).includes(artistName.toLowerCase())) {
+        if (!artistNames.some(el => track.artists.map(artist => artist.name.toLowerCase()).includes(el.toLowerCase()))) {
           continue
         }
 
@@ -124,7 +124,8 @@ const tracks_by_album = async (albums, watchlist) => {
 
       for (let j = 0; j < albumTracks.length; j++) {
         let track = albumTracks[j];
-        if (!track.artists.map(artist => artist.name.toLowerCase()).includes(albums[i].artist.name.toLowerCase())) {
+        if (!track.artists.map(artist => artist.name.toLowerCase()).includes(albums[i].artist.name.toLowerCase()) &&
+            !track.artists.map(relatedArtist => relatedArtist.name.toLowerCase()).includes(albums[i].relatedArtist.name.toLowerCase())) {
           continue
         }
 
@@ -136,7 +137,7 @@ const tracks_by_album = async (albums, watchlist) => {
             uri: track.uri,
             url: track.external_urls.spotify,
             album: {
-              name: albums[i].name,
+              name: albums[i].name.substring(0, 100),
               spotify_id: albums[i].id,
               release_date: albums[i].release_date,
               artist: {

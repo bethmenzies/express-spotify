@@ -1,6 +1,6 @@
 const { add_tracks, create_playlist, add_tracks_no_playlist_position, add_tracks_to_artist_playlists } = require("../controllers/playlistController")
 const asyncHandler = require("express-async-handler");
-const { recent_albums_by_artist, albums_for_artist } = require('../controllers/albumController.js');
+const { recent_albums_by_artist, albums_for_artists } = require('../controllers/albumController.js');
 const { tracks_by_album, remove_old_tracks, artist_tracks_by_album } = require('../controllers/trackController.js');
 const { get_spotify_ids } = require('../controllers/artistController.js')
 
@@ -112,11 +112,19 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
 
 const runForArtist = async (artist, req, res, next) => {
   return new Promise(async (resolve) => {
-    let albums = await albums_for_artist(artist.spotify_id)
+    let artistAndSpotifyIds = [{name: artist.name, spotify_id: artist.spotify_id}]
+    for (let i = 0; i < artist.related_artists.length; i++) {
+      artistAndSpotifyIds.push({name: artist.related_artists[i].name, spotify_id: artist.related_artists[i].spotify_id})
+    }
+    let albums = await albums_for_artists(artistAndSpotifyIds)
     if (albums.length === 0) {
       return resolve("Something failed when getting recent albums. Please try again.")
     }
-    let tracks = await artist_tracks_by_album(albums, artist.name);
+    let artistNames = [artist.name]
+    for (let i = 0; i < artist.related_artists.length; i++) {
+      artistNames.push(artist.related_artists[i].name)
+    }
+    let tracks = await artist_tracks_by_album(albums, artistNames);
     if (tracks === null) {
       return resolve("Something failed when getting album tracks. Please try again.")
     }

@@ -2,9 +2,15 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
+const TrackRelatedArtistSchema = new Schema({
+  name: { type: String, required: true, maxLength: 100 },
+  spotify_id: { type: String, maxLength: 100 }
+});
+
 const TrackArtistSchema = new Schema({
   name: { type: String, required: true, maxLength: 100 },
   spotify_id: { type: String, maxLength: 100 },
+  related_artists: { type: [TrackRelatedArtistSchema] },
   watchlist: { type: Boolean, required: true }
 });
 
