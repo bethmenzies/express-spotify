@@ -42,16 +42,25 @@ const remove_old_tracks = async (date, watchlist, playlistId) => {
 const artist_tracks_by_album = async (albums, artistNames) => {
   return new Promise(async (resolve) => {
     var tracks = []
+    var error = ""
     for (let i = 0; i < albums.length; i++) {
+      if (error.error) {
+        break
+      }
       let albumTracks = []
       let body = await get_tracks_by_album(albums[i].id, 1, 0)
-      if (body === null) {
-        return resolve(null)
+      if (body.error) {
+        error = body
+        break
       }
       let total = body.total
       let iterations = Math.floor(total/50)
       for (let j = 0; j <= iterations; j++) {
         let body = await get_tracks_by_album(albums[i].id, 50, j*50)
+        if (body.error) {
+          error = body
+          break
+        }
         albumTracks.push(...body.items)
       }
 
@@ -101,7 +110,7 @@ const artist_tracks_by_album = async (albums, artistNames) => {
         }
       }
     }
-    resolve(tracks)
+    resolve({tracks: tracks, error: error})
   })
 }
 
@@ -109,16 +118,22 @@ const tracks_by_album = async (albums, watchlist) => {
   return new Promise(async (resolve) => {
     var playlistPosition = 0
     var tracks = [];
+    var error = ""
     for (let i = 0; i < albums.length; i++) {
       var albumTracks = []
       let body = await get_tracks_by_album(albums[i].id, 1, 0)
-      if (body === null) {
-        return resolve(null)
+      if (body.error) {
+        error = body
+        break
       }
       let total = body.total
       let iterations = Math.floor(total/50)
       for (let j = 0; j <= iterations; j++) {
         let body = await get_tracks_by_album(albums[i].id, 50, j*50)
+        if (body.error) {
+          error = body
+          break
+        }
         albumTracks.push(...body.items)
       }
 
@@ -163,7 +178,7 @@ const tracks_by_album = async (albums, watchlist) => {
         }
       }
     }
-    resolve(tracks);
+    resolve({tracks: tracks, error: error});
   });
 }
 

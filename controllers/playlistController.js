@@ -103,6 +103,7 @@ const remove_tracks = async (tracks, playlistId) => {
 const add_tracks_to_artist_playlists = async (tracks) => {
   return new Promise(async (resolve) => {
     let allSuccess = true
+    var error = ""
     let tracksGroupedByArtist = Object.values(
       tracks.reduce((acc, current) => {
           acc[current.album.artist.name] = acc[current.album.artist.name] ?? [];
@@ -111,17 +112,22 @@ const add_tracks_to_artist_playlists = async (tracks) => {
       }, {})
     );
     for (let i = 0; i < tracksGroupedByArtist.length; i++) {
+      if (error.error) {
+        break
+      }
       let artist = tracksGroupedByArtist[i][0].album.artist.name
       let playlistId = await find_playlist(artist)
       if (playlistId === null) {
         continue
       }
       let playlist = await add_tracks_no_playlist_position(playlistId, tracksGroupedByArtist[i])
-      if (!playlist) {
+      if (playlist.error) {
         allSuccess = false
+        error = playlist
+        break
       }
     }
-    return resolve(allSuccess)
+    return resolve({allSuccess: allSuccess, error: error})
   })
 }
 
@@ -129,46 +135,59 @@ const add_included_tracks = async (playlistId, tracks) => {
   // TODO: add to the right place in the playlist
   return new Promise(async (resolve) => {
     let allSuccess = true
+    var error = ""
     const allUris = tracks.filter(track => track.to_include).map(track => track.uri)
     const allBodies = chunkArray(allUris, 100)
 
     for (let i = 0; i < allBodies.length; i++) {
+      if (error.error) {
+        break
+      }
       const body = JSON.stringify({
         "uris": allBodies[i]
       })
 
       let result = await call_add_tracks_to_playlist(playlistId, body)
-      if (result === null) {
+      if (result.error) {
         allSuccess = false
+        error = result
+        break
       }
     }
-    return resolve(allSuccess)
+    return resolve({allSuccess: allSuccess, error: error})
   })
 }
 
 const add_tracks_no_playlist_position = async (playlistId, tracks) => {
   return new Promise(async (resolve) => {
     let allSuccess = true
+    var error = ""
     const allUris = tracks.map(track => track.uri)
     const allBodies = chunkArray(allUris, 100)
 
     for (let i = 0; i < allBodies.length; i++) {
+      if (error.error) {
+        break
+      }
       const body = JSON.stringify({
         "uris": allBodies[i]
       })
 
       let result = await call_add_tracks_to_playlist(playlistId, body)
-      if (result === null) {
+      if (result.error) {
         allSuccess = false
+        error = result
+        break
       }
     }
-    return resolve(allSuccess)
+    return resolve({allSuccess: allSuccess, error: error})
   })
 }
 
 const add_tracks_from_db = async (playlistId, watchlist) => {
   return new Promise(async (resolve) => {
     let allSuccess = true
+    var error = ""
     allTracks = await Track.find({ watchlist: watchlist }, 'playlist_position uri to_include album.release_date album.artist.name')
       .sort({ 'playlist_position': 1 })
       .exec();
@@ -176,34 +195,45 @@ const add_tracks_from_db = async (playlistId, watchlist) => {
     const allBodies = chunkArray(allUris, 100)
 
     for (let i = 0; i < allBodies.length; i++) {
+      if (error.error) {
+        break
+      }
       const body = JSON.stringify({
         "uris" : allBodies[i]
       })
 
       let result = await call_add_tracks_to_playlist(playlistId, body)
-      if (result === null) {
+      if (result.error) {
         allSuccess = false
+        error = result
+        break
       }
     }
-    return resolve(allSuccess)
+    return resolve({allSuccess: allSuccess, error: error})
   })
 }
 
 const add_tracks = async (playlistId, tracks) => {
   return new Promise(async (resolve) => {
     let allSuccess = true
+    var error = ""
     for (let i = 0; i < tracks.length; i++) {
+      if (error.error) {
+        break
+      }
       const body = JSON.stringify({
         "uris" : [tracks[i].uri],
         "position": tracks[i].playlist_position
       })
 
       let result = await call_add_tracks_to_playlist(playlistId, body)
-      if (result === null) {
+      if (result.error) {
         allSuccess = false
+        error = result
+        break
       }
     }
-    return resolve(allSuccess)
+    return resolve({allSuccess: allSuccess, error: error})
   })
 }
 

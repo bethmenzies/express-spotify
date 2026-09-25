@@ -4,8 +4,8 @@ block content
   h1= title
 
   if error !== null
-    p Playlist not #{state}.
     p= error
+    p Error: #{errorStatus} - #{errorMessage}
   else if state === "nothing"
     p Nothing new to add. See you again soon.
   else

@@ -77,7 +77,7 @@ const artist_swap_playlist_post = asyncHandler(async (req, res, next) => {
       res.send("Something failed when deleting artist tracks from playlist. Please try to swap the artist again.")
     }
     let isAdded = await add_included_tracks(swapped_playlistId, tracks)
-    if (!isAdded) {
+    if (!isAdded.allSuccess) {
       res.send("Something failed when adding artist tracks to playlist. Please try to swap the artist again.")
     }
     if (isDeleted && isAdded) {

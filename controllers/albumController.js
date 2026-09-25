@@ -17,15 +17,24 @@ const get_albums_by_artist = async (artistId, limit, offset) => {
 const albums_for_artists = async (artistAndSpotifyIds) => {
   return new Promise(async (resolve) => {
     let albums = []
+    var error = ""
     for (let i = 0; i < artistAndSpotifyIds.length; i++) {
+      if (error.error) {
+        break
+      }
       let body = await get_albums_by_artist(artistAndSpotifyIds[i].spotify_id, 1, 0)
-      if (body === null) {
-        return resolve([]);
+      if (body.error) {
+        error = body
+        break
       }
       let total = body.total
       let iterations = Math.floor(total/50)
       for (let j = 0; j <= iterations; j++) {
         let body = await get_albums_by_artist(artistAndSpotifyIds[i].spotify_id, 50, j*50)
+        if (body.error) {
+          error = body
+          break
+        }
         albums.push(...body.items)
       }
     }
@@ -33,7 +42,7 @@ const albums_for_artists = async (artistAndSpotifyIds) => {
     .filter(album => !album.artists.map(artist => artist.name.toLowerCase()).includes("Various Artists".toLowerCase()))
     .sort((a,b) => (a.release_date > b.release_date) ? 1 : ((b.release_date > a.release_date) ? -1 : 0))
   
-    resolve(albums)
+    resolve({albums: albums, error: error})
   })
 }
 
@@ -44,17 +53,26 @@ const recent_albums_by_artist = async (date, watchlist) => {
 
   return new Promise(async (resolve) => {
     var albums = []
+    var error = ""
     for (let i = 0; i < allArtistsWithSpotifyIds.length; i++) {
+      if (error.error) {
+        break
+      }
       var items = []
       let artist = allArtistsWithSpotifyIds[i]
       let body = await get_albums_by_artist(artist.spotify_id, 1, 0)
-      if (body === null) {
-        return resolve([]);
+      if (body.error) {
+        error = body
+        break
       }
       let total = body.total
       let iterations = Math.floor(total/50)
       for (let j = 0; j <= iterations; j++) {
         let body = await get_albums_by_artist(artist.spotify_id, 50, j*50)
+        if (body.error) {
+          error = body
+          break
+        }
         items.push(...body.items)
       }
 
@@ -77,16 +95,24 @@ const recent_albums_by_artist = async (date, watchlist) => {
       }
 
       for (let k = 0; k < allArtistsWithSpotifyIds[i].related_artists.length; k++) {
+        if (error.error) {
+          break
+        }
         var relatedItems = []
         let relatedArtist = allArtistsWithSpotifyIds[i].related_artists[k]
         let relatedBody = await get_albums_by_artist(relatedArtist.spotify_id, 1, 0)
-        if (relatedBody === null) {
-          return resolve([]);
+        if (relatedBody.error) {
+          error = relatedBody
+          break
         }
         let total = relatedBody.total
         let iterations = Math.floor(total/50)
         for (let j = 0; j <= iterations; j++) {
           let relatedBody = await get_albums_by_artist(relatedArtist.spotify_id, 50, j*50)
+          if (relatedBody.error) {
+            error = relatedBody
+            break
+          }
           relatedItems.push(...relatedBody.items)
         }
 
@@ -114,7 +140,7 @@ const recent_albums_by_artist = async (date, watchlist) => {
   
       albums.push(...recentAlbums)
     }
-    resolve(albums);
+    resolve({albums: albums, error: error});
   });
 }
 

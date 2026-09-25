@@ -7,23 +7,8 @@ const call_spotify = async (options, body) => {
       response.setEncoding('utf8');
       response.on('data', (chunk) => responseBody = responseBody + chunk);
       response.on('end', function () {
-        let parsedBody;
-        try { 
-          parsedBody = JSON.parse(responseBody + '');
-        } catch (err) {
-          console.log(err.name);
-          console.log(err)
-          console.log(responseBody)
-          parsedBody = responseBody + '';
-        }
-  
-        // Resolve based on status code.
-        console.log(response.statusCode);
-        if (response.statusCode === 200 || response.statusCode == 201) {
-          return resolve(parsedBody);
-        } else {
-          return resolve(null)
-        }
+        parsedBody = JSON.parse(responseBody + '');
+        return resolve(parsedBody);
       });
     });
   
