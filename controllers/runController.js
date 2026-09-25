@@ -76,6 +76,19 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
     thisPlaylistId = playlistId;
   } else {
     let playlist = await create_playlist();
+    if (playlist.error) {
+      res.render("run", {
+        title: "Error!",
+        state: playlistState,
+        error: "Something went wrong when creating the new playlist. Everything will be in the DB though - so try using the create from DB option.",
+        errorStatus: playlist.error.error.status,
+        errorMessage: playlist.error.error.message,
+        removedTracks: removedTracks,
+        tracks: tracks.tracks,
+        watchlist: watchlist
+      });
+      return;
+    }
     thisPlaylistId = playlist.id
   }
   let playlist = await add_tracks(thisPlaylistId, tracks.tracks);
@@ -137,6 +150,9 @@ const runForArtist = async (artist, req, res, next) => {
       return resolve("Something failed when getting album tracks. Please try again.")
     }
     let playlistBody = await create_playlist(artist.name)
+    if (playlist.error) {
+      resolve("Something went wrong when creating the playlist. Try again.")
+    }
     let playlistId = playlistBody.id
     let playlist = await add_tracks_no_playlist_position(playlistId, tracks.tracks);
     if (!playlist.allSuccess) {

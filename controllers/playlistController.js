@@ -25,11 +25,20 @@ const get_playlists = async (limit, offset) => {
 
 const find_playlist = async (playlistName) => {
   let playlists = []
+  var error = ""
   let body = await get_playlists(1, 0)
+  if (body.error) {
+    error = body
+    return null
+  }
   let total = body.total
   let iterations = Math.floor(total/50)
   for (let i = 0; i <= iterations; i++) {
     let body = await get_playlists(50, i*50)
+    if (body.error) {
+      error = body
+      break
+    }
     playlists.push(...body.items)
   }
   let matchingPlaylist = playlists.filter(playlist => playlist.name.toLowerCase() === playlistName.toLowerCase())
@@ -67,6 +76,7 @@ const remove_tracks = async (tracks, playlistId) => {
   return new Promise(async (resolve) => {
     var uriObjects = []
     var allResponses = true
+    var error = ""
     for (let i = 0; i < tracks.length; i++) {
       const uriObject = {
         uri: tracks[i].uri
@@ -76,6 +86,9 @@ const remove_tracks = async (tracks, playlistId) => {
     const allBodies = chunkArray(uriObjects, 100)
 
     for (let i = 0; i < allBodies.length; i++) {
+      if (error.error) {
+        break
+      }
       const body = JSON.stringify({
         "tracks": allBodies[i]
       })
@@ -92,11 +105,13 @@ const remove_tracks = async (tracks, playlistId) => {
       }
 
       let response = await call_spotify(options, body);
-      if (response === null) {
+      if (response.error) {
         allResponses = false
+        error = response
+        break
       }
     }
-    return resolve(allResponses)
+    return resolve({allResponses: allResponses, error: error})
   })
 }
 

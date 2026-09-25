@@ -73,7 +73,7 @@ const artist_swap_playlist_post = asyncHandler(async (req, res, next) => {
 
   if (current_playlistId && swapped_playlistId) {
     let isDeleted = await remove_tracks(tracks, current_playlistId);
-    if (!isDeleted) {
+    if (!isDeleted.allResponses) {
       res.send("Something failed when deleting artist tracks from playlist. Please try to swap the artist again.")
     }
     let isAdded = await add_included_tracks(swapped_playlistId, tracks)
@@ -106,7 +106,7 @@ const artist_delete_post = asyncHandler(async (req, res, next) => {
 
   if (playlistId) {
     let isDeleted = await remove_tracks(tracks, playlistId)
-    if (isDeleted) {
+    if (isDeleted.allResponses) {
       await Artist.findByIdAndDelete(req.body.artistid).exec();
       await Track.deleteMany({ 'album.artist.name': artist.name }).exec();
       res.redirect("/artists?watchlist=" + watchlist);

@@ -226,7 +226,7 @@ const track_delete_post = asyncHandler(async (req, res, next) => {
   }
   if (playlistId) {
     let isDeleted = await remove_tracks([track], playlistId)
-    if (isDeleted) {
+    if (isDeleted.allResponses) {
       await Track.findByIdAndUpdate(req.body.trackid, { to_include: false, playlist_position: -1 }).exec();
       res.redirect("/tracks?watchlist=" + watchlist);
     } else {
