@@ -262,7 +262,7 @@ const call_add_tracks_to_playlist = async (playlistId, body) => {
     },
     json: true
   }
-  await call_spotify(options, body);
+  return await call_spotify(options, body);
 }
 
 module.exports = { add_tracks, add_tracks_from_db, remove_tracks, create_playlist, add_tracks_no_playlist_position, add_tracks_to_artist_playlists, add_included_tracks }

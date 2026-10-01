@@ -74,11 +74,21 @@ const artist_swap_playlist_post = asyncHandler(async (req, res, next) => {
   if (current_playlistId && swapped_playlistId) {
     let isDeleted = await remove_tracks(tracks, current_playlistId);
     if (!isDeleted.allResponses) {
-      res.send("Something failed when deleting artist tracks from playlist. Please try to swap the artist again.")
+      res.render("error", {
+        title: "Error!",
+        error: `Something failed when deleting artist tracks from playlist. Please try to swap ${artist.name} again.`,
+        errorStatus: isDeleted.error.error.status,
+        errorMessage: isDeleted.error.error.message,
+      });
     }
     let isAdded = await add_included_tracks(swapped_playlistId, tracks)
     if (!isAdded.allSuccess) {
-      res.send("Something failed when adding artist tracks to playlist. Please try to swap the artist again.")
+      res.render("error", {
+        title: "Error!",
+        error: `Something failed when adding artist tracks to playlist. Please try to swap ${artist.name} again.`,
+        errorStatus: isAdded.error.error.status,
+        errorMessage: isAdded.error.error.message,
+      });
     }
     if (isDeleted && isAdded) {
       await Artist.findByIdAndUpdate(req.body.artistid, {watchlist: swapped_watchlist}).exec();
@@ -111,7 +121,12 @@ const artist_delete_post = asyncHandler(async (req, res, next) => {
       await Track.deleteMany({ 'album.artist.name': artist.name }).exec();
       res.redirect("/artists?watchlist=" + watchlist);
     } else {
-      res.send("Something failed when deleting artist tracks from playlist. Please try to delete the artist again.")
+      res.render("error", {
+        title: "Error!",
+        error: `Something failed when deleting artist tracks from playlist. Please try to delete ${artist.name} again.`,
+        errorStatus: isDeleted.error.error.status,
+        errorMessage: isDeleted.error.error.message,
+      });
     }
   } else {
     await Artist.findByIdAndDelete(req.body.artistid).exec();
@@ -142,7 +157,12 @@ const artist_edit_post = [
       let relatedArtistName = relatedArtistsArray[i]
       let relatedArtistSpotifyIdBody = await get_spotify_id_for_artist(relatedArtistName)
       if (relatedArtistSpotifyIdBody.artists.items.length === 0) {
-        res.send(`No results for ${relatedArtistName} in Spotify`);
+        res.render("error", {
+          title: "Error!",
+          error: `No results for ${relatedArtistName} in Spotify`,
+          errorStatus: relatedArtistSpotifyIdBody.error.error.status,
+          errorMessage: relatedArtistSpotifyIdBody.error.error.message,
+        });
       }
       let relatedArtistSpotifyId = relatedArtistSpotifyIdBody.artists.items.find(itemArtist => relatedArtistName.toLowerCase() === itemArtist.name.toLowerCase()).id;
       
@@ -173,7 +193,12 @@ const artist_add_post = [
 
     let artistSpotifyIdBody = await get_spotify_id_for_artist(req.body.name);
     if (artistSpotifyIdBody.artists.items.length === 0) {
-      res.send(`No results for ${req.body.name} in Spotify`);
+      res.render("error", {
+        title: "Error!",
+        error: `No results for ${req.body.name} in Spotify`,
+        errorStatus: artistSpotifyIdBody.error.error.status,
+        errorMessage: artistSpotifyIdBody.error.error.message,
+      });
     }
     let artistSpotifyId = artistSpotifyIdBody.artists.items.find(itemArtist => req.body.name.toLowerCase() === itemArtist.name.toLowerCase()).id;
     
@@ -185,7 +210,12 @@ const artist_add_post = [
         let relatedArtistName = relatedArtistsArray[i]
         let relatedArtistSpotifyIdBody = await get_spotify_id_for_artist(relatedArtistName)
         if (relatedArtistSpotifyIdBody.artists.items.length === 0) {
-          res.send(`No results for ${relatedArtistName} in Spotify`);
+          res.render("error", {
+            title: "Error!",
+            error: `No results for ${relatedArtistName} in Spotify`,
+            errorStatus: relatedArtistSpotifyIdBody.error.error.status,
+            errorMessage: artistSpotifyIdBody.error.error.message,
+          });
         }
         let relatedArtistSpotifyId = relatedArtistSpotifyIdBody.artists.items.find(itemArtist => relatedArtistName.toLowerCase() === itemArtist.name.toLowerCase()).id;
         

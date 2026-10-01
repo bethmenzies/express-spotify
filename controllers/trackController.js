@@ -230,7 +230,12 @@ const track_delete_post = asyncHandler(async (req, res, next) => {
       await Track.findByIdAndUpdate(req.body.trackid, { to_include: false, playlist_position: -1 }).exec();
       res.redirect("/tracks?watchlist=" + watchlist);
     } else {
-      res.send("Something failed when deleting track. Please try again.")
+      res.render("error", {
+        title: "Error!",
+        error: `Something failed when deleting track. Please try to delete ${track.name} again.`,
+        errorStatus: isDeleted.error.error.status,
+        errorMessage: isDeleted.error.error.message,
+      });
     }
   } else {
     await Track.findByIdAndUpdate(req.body.trackid, { to_include: false, playlist_position: -1 }).exec();
