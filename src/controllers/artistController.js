@@ -192,12 +192,12 @@ const artist_add_post = [
     const errors = validationResult(req);
 
     let artistSpotifyIdBody = await get_spotify_id_for_artist(req.body.name);
-    if (artistSpotifyIdBody.artists.items.length === 0) {
+    if (artistSpotifyIdBody.error || artistSpotifyIdBody.artists.items.length === 0) {
       res.render("error", {
         title: "Error!",
         error: `No results for ${req.body.name} in Spotify`,
-        errorStatus: artistSpotifyIdBody.error.error.status,
-        errorMessage: artistSpotifyIdBody.error.error.message,
+        errorStatus: artistSpotifyIdBody.error.status,
+        errorMessage: artistSpotifyIdBody.error.message,
       });
     }
     let artistSpotifyId = artistSpotifyIdBody.artists.items.find(itemArtist => req.body.name.toLowerCase() === itemArtist.name.toLowerCase()).id;
@@ -213,8 +213,8 @@ const artist_add_post = [
           res.render("error", {
             title: "Error!",
             error: `No results for ${relatedArtistName} in Spotify`,
-            errorStatus: relatedArtistSpotifyIdBody.error.error.status,
-            errorMessage: artistSpotifyIdBody.error.error.message,
+            errorStatus: relatedArtistSpotifyIdBody.error.status,
+            errorMessage: artistSpotifyIdBody.error.message,
           });
         }
         let relatedArtistSpotifyId = relatedArtistSpotifyIdBody.artists.items.find(itemArtist => relatedArtistName.toLowerCase() === itemArtist.name.toLowerCase()).id;

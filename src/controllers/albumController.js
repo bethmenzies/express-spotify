@@ -135,10 +135,13 @@ const recent_albums_by_artist = async (date, watchlist) => {
         }
         recentAlbums.push(...relatedRecentAlbums)
       }
-
       recentAlbums.sort((a,b) => (a.release_date > b.release_date) ? 1 : ((b.release_date > a.release_date) ? -1 : 0))
+      
+      let map = new Map()
+      recentAlbums.forEach(o => map.set(o.name, o));
+      let deduped = [...map.values()];
   
-      albums.push(...recentAlbums)
+      albums.push(...deduped)
     }
     resolve({albums: albums, error: error});
   });

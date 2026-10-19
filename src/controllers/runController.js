@@ -1,37 +1,60 @@
-const { add_tracks, create_playlist, add_tracks_no_playlist_position, add_tracks_to_artist_playlists } = require("../controllers/playlistController")
+const { add_tracks, create_playlist, add_tracks_no_playlist_position, add_tracks_to_artist_playlists } = require("./playlistController.js")
 const asyncHandler = require("express-async-handler");
-const { recent_albums_by_artist, albums_for_artists } = require('../controllers/albumController.js');
-const { tracks_by_album, remove_old_tracks, artist_tracks_by_album } = require('../controllers/trackController.js');
-const { get_spotify_ids } = require('../controllers/artistController.js')
-
-const get_date_2_years_ago = () => {
-  var date = new Date()
-  const offset = date.getTimezoneOffset()
-  date = new Date(date.getTime() - (offset*60*1000))
-  date.setFullYear(date.getFullYear() - 2)
-  return date.toISOString().split('T')[0]
-}
+const { recent_albums_by_artist, albums_for_artists } = require('./albumController.js');
+const { tracks_by_album, artist_tracks_by_album } = require('./trackController.js');
+const { removeTracksFromDB, removeTracksFromPlaylist } = require('../services/trackService.js');
+const { getOldDate } = require('../utils/dateUtils.js');
 
 const runForLatestTracks = asyncHandler(async (req, res, next) => {
   let watchlist = req.query.watchlist
-  let playlistId 
-  if (watchlist === 'true') {
-    playlistId = process.env.WATCHLIST_PLAYLIST_ID
-  } else {
-    playlistId = process.env.PLAYLIST_ID
-  }
-  let playlistState
-  if (playlistId) {
+  let removedTracks = await removeTracksFromDB(watchlist)
+
+  let playlistId, playlistState
+
+  if (watchlist === true || watchlist === "true") {
+    playlistId = process.env.WATCHLIST_PLAYLIST_ID 
     playlistState = "updated"
-  } else {
+  }
+  if (watchlist === false || watchlist === "false") {
+    playlistId = process.env.PLAYLIST_ID
+    playlistState = "updated"
+  }
+
+  let allResponses = await removeTracksFromPlaylist(removedTracks, playlistId)
+  if (!allResponses) {
+    res.render("run", {
+      title: "Error!",
+      state: playlistState,
+      error: "Something went wrong when removing tracks from the playlist. The DB has been updated and tracks older than 2 years have been removed, you may want to update the playlist manually.",
+      errorStatus: allResponses.error.error.status,
+      errorMessage: allResponses.error.error.message,
+      removedTracks: removedTracks,
+      tracks: [],
+      watchlist: watchlist
+    });
+    return;
+  }
+  
+  if (playlistId === undefined || playlistId === null) {
+    let playlist = await create_playlist();
+    if (playlist.error.error) {
+      res.render("run", {
+        title: "Error!",
+        state: "created",
+        error: "Something went wrong when creating a new playlist. Try again - or wait some time and try later.",
+        errorStatus: playlist.error.error.status,
+        errorMessage: playlist.error.error.message,
+        removedTracks: removedTracks,
+        tracks: [],
+        watchlist: watchlist
+      });
+      return;
+    }
+    playlistId = playlist.id
     playlistState = "created"
   }
-  const date = get_date_2_years_ago()
-  let removedTracks
-  if (playlistId) {
-    removedTracks = await remove_old_tracks(date, watchlist, playlistId)
-  }
-  //await get_spotify_ids(watchlist);
+
+  let date = getOldDate()
   let albums = await recent_albums_by_artist(date, watchlist);
   if (albums.error.error) {
     res.render("run", {
@@ -63,35 +86,18 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
   if (tracks.tracks.length === 0) {
     res.render("run", {
       title: "Completed!",
-      state: "nothing",
+      state: null,
       error: null,
+      errorStatus: null,
+      errorMessage: null,
       removedTracks: removedTracks,
       tracks: tracks.tracks,
       watchlist: watchlist
     });
     return;
   }
-  let thisPlaylistId;
-  if (playlistId) {
-    thisPlaylistId = playlistId;
-  } else {
-    let playlist = await create_playlist();
-    if (playlist.error) {
-      res.render("run", {
-        title: "Error!",
-        state: playlistState,
-        error: "Something went wrong when creating the new playlist. Everything will be in the DB though - so try using the create from DB option.",
-        errorStatus: playlist.error.error.status,
-        errorMessage: playlist.error.error.message,
-        removedTracks: removedTracks,
-        tracks: tracks.tracks,
-        watchlist: watchlist
-      });
-      return;
-    }
-    thisPlaylistId = playlist.id
-  }
-  let playlist = await add_tracks(thisPlaylistId, tracks.tracks);
+  
+  let playlist = await add_tracks(playlistId, tracks.tracks);
   if (!playlist.allSuccess) {
     res.render("run", {
       title: "Error!",
@@ -110,9 +116,9 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
     res.render("run", {
       title: "Error!",
       state: playlistState,
+      error: "Something went wrong when adding tracks to artists playlist. You might want to do this manually.",
       errorStatus: artistPlaylists.error.error.status,
       errorMessage: artistPlaylists.error.error.message,
-      error: "Something went wrong when adding tracks to artists playlist. You might want to do this manually.",
       removedTracks: removedTracks,
       tracks: tracks.tracks,
       watchlist: watchlist
@@ -123,6 +129,8 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
       title: "Completed!",
       state: playlistState,
       error: null,
+      errorStatus: null,
+      errorMessage: null,
       removedTracks: removedTracks,
       tracks: tracks.tracks,
       watchlist: watchlist
@@ -150,7 +158,7 @@ const runForArtist = async (artist, req, res, next) => {
       return resolve("Something failed when getting album tracks. Please try again.")
     }
     let playlistBody = await create_playlist(artist.name)
-    if (playlist.error) {
+    if (playlistBody.error) {
       resolve("Something went wrong when creating the playlist. Try again.")
     }
     let playlistId = playlistBody.id

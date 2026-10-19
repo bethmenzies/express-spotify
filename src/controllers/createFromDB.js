@@ -1,4 +1,4 @@
-const { add_tracks_from_db, create_playlist } = require("../controllers/playlistController")
+const { add_tracks_from_db, create_playlist } = require("./playlistController")
 const asyncHandler = require("express-async-handler");
 
 const create_playlist_from_db = asyncHandler(async (req, res, next) => {

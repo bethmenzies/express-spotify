@@ -1,6 +1,6 @@
 const Track = require("../models/playlistTrack");
 const { call_spotify } = require("./spotifyController")
-const { remove_tracks } = require("../controllers/playlistController")
+const { remove_tracks } = require("./playlistController")
 const asyncHandler = require("express-async-handler");
 
 const get_tracks_by_album = async (albumId, limit, offset) => {
@@ -14,29 +14,6 @@ const get_tracks_by_album = async (albumId, limit, offset) => {
     json: true
   }
   return await call_spotify(options);
-}
-
-const remove_old_tracks = async (date, watchlist, playlistId) => {
-  return new Promise(async (resolve) => {
-    const allTracks = await Track.find({ watchlist: watchlist }, "uri to_include album.release_date name url album.artist.name album.name").exec();
-
-    let oldTracks = allTracks.filter(track => {
-      return track.album.release_date < date
-    });
-
-    if (oldTracks.length > 0) {
-      remove_tracks(oldTracks, playlistId);
-  
-      for (let i = 0; i < oldTracks.length; i++) {
-        await Track.findOneAndDelete({ uri: oldTracks[i].uri }).exec();
-      }
-
-      let oldTracksInPlaylist = oldTracks.filter(track => track.to_include)
-      return resolve(oldTracksInPlaylist)
-    } else {
-      return resolve([])
-    }
-  });
 }
 
 const artist_tracks_by_album = async (albums, artistNames) => {
@@ -174,7 +151,6 @@ const tracks_by_album = async (albums, watchlist) => {
             await Track.findByIdAndUpdate(existingTrack[0]._id, { playlist_position: playlistPosition }, {}).exec();
             playlistPosition++
           }
-          continue;
         }
       }
     }
@@ -243,4 +219,4 @@ const track_delete_post = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { tracks_by_album, remove_old_tracks, track_list, track_delete_get, track_delete_post, artist_tracks_by_album }
+module.exports = { tracks_by_album, track_list, track_delete_get, track_delete_post, artist_tracks_by_album }

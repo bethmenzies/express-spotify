@@ -62,7 +62,7 @@ const create_playlist = async (playlistName) => {
 
   const options = {
     hostname: 'api.spotify.com',
-    path: `/v1/users/${process.env.USER_ID}/playlists`,
+    path: `/v1/me/playlists`,
     method: 'POST',
     headers: {
         Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
@@ -90,12 +90,12 @@ const remove_tracks = async (tracks, playlistId) => {
         break
       }
       const body = JSON.stringify({
-        "tracks": allBodies[i]
+        "items": allBodies[i]
       })
 
       const options = {
         hostname: 'api.spotify.com',
-        path: `/v1/playlists/${playlistId}/tracks`,
+        path: `/v1/playlists/${playlistId}/items`,
         method: 'DELETE',
         headers: {
             Authorization: 'Bearer ' + process.env.ACCESS_TOKEN,
@@ -255,7 +255,7 @@ const add_tracks = async (playlistId, tracks) => {
 const call_add_tracks_to_playlist = async (playlistId, body) => {
   const options = {
     hostname: 'api.spotify.com',
-    path: `/v1/playlists/${playlistId}/tracks`,
+    path: `/v1/playlists/${playlistId}/items`,
     method: 'POST',
     headers: {
         Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
