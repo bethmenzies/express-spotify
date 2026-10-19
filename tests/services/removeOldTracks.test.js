@@ -1,9 +1,9 @@
-const { findTracksLteDate, deleteTracksLteDate, removeTracksFromDB, removeTracksFromPlaylist } = require('../../services/trackService');
-const { getOldDate, getTodaysDate } = require('../../utils/dateUtils');
-const Track = require('../../models/playlistTrack');
-const { remove_tracks } = require('../../controllers/playlistController');
+const { findTracksLteDate, deleteTracksLteDate, removeTracksFromDB, removeTracksFromPlaylist } = require('../../src/services/trackService');
+const { getOldDate, getTodaysDate } = require('../../src/utils/dateUtils');
+const Track = require('../../src/models/playlistTrack');
+const { remove_tracks } = require('../../src/controllers/playlistController');
 
-jest.mock('../../controllers/playlistController', () => {
+jest.mock('../../src/controllers/playlistController', () => {
   return {
     remove_tracks: jest.fn()
   };

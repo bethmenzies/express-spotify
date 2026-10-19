@@ -1,4 +1,4 @@
-const { getOldDate, getTodaysDate } = require('../../utils/dateUtils');
+const { getOldDate, getTodaysDate } = require('../../src/utils/dateUtils');
 
 describe('getOldDate', () => {
   it('returns the date exactly 2 years ago from today', () => {
