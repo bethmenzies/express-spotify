@@ -1,6 +1,6 @@
 const { add_tracks, create_playlist, add_tracks_no_playlist_position, add_tracks_to_artist_playlists } = require("./playlistController.js")
 const asyncHandler = require("express-async-handler");
-const { recent_albums_by_artist, albums_for_artists } = require('./albumController.js');
+const { recentAlbums, albums_for_artists } = require('./albumController.js');
 const { tracks_by_album, artist_tracks_by_album } = require('./trackController.js');
 const { removeTracksFromDB, removeTracksFromPlaylist } = require('../services/trackService.js');
 const { getOldDate } = require('../utils/dateUtils.js');
@@ -25,7 +25,7 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
     res.render("run", {
       title: "Error!",
       state: playlistState,
-      error: "Something went wrong when removing tracks from the playlist. The DB has been updated and tracks older than 2 years have been removed, you may want to update the playlist manually.",
+      error: "Something went wrong when removing tracks from the playlist. You might want to do this manually.",
       errorStatus: allResponses.error.error.status,
       errorMessage: allResponses.error.error.message,
       removedTracks: removedTracks,
@@ -54,8 +54,7 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
     playlistState = "created"
   }
 
-  let date = getOldDate()
-  let albums = await recent_albums_by_artist(date, watchlist);
+  let albums = await recentAlbums(watchlist);
   if (albums.error.error) {
     res.render("run", {
       title: "Error!",

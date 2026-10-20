@@ -1,5 +1,5 @@
 const Artist = require("../models/artist");
-const Track = require("../models/playlistTrack");
+const Track = require("../models/track");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const { call_spotify } = require("./spotifyController");

@@ -1,18 +1,6 @@
-const Artist = require("../models/artist");
-const { call_spotify } = require("./spotifyController");
-
-const get_albums_by_artist = async (artistId, limit, offset) => {
-  const options = {
-    hostname: 'api.spotify.com',
-    path: `/v1/artists/${artistId}/albums?limit=${limit}&offset=${offset}`,
-    method: 'GET',
-    headers: {
-        Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
-    },
-    json: true
-  }
-  return await call_spotify(options);
-}
+const { get_albums_by_artist } = require("../services/albumService");
+const { findArtistsByWatchlist } = require("../db/artists");
+const { getOldDate } = require("../utils/dateUtils");
 
 const albums_for_artists = async (artistAndSpotifyIds) => {
   return new Promise(async (resolve) => {
@@ -46,99 +34,43 @@ const albums_for_artists = async (artistAndSpotifyIds) => {
   })
 }
 
-const recent_albums_by_artist = async (date, watchlist) => {
-  const allArtistsWithSpotifyIds = await Artist.find({ watchlist: watchlist }, "name spotify_id watchlist related_artists")
-  .sort({ name: 1 })
-  .exec();
-
+const recentAlbums = async (watchlist) => {
   return new Promise(async (resolve) => {
     var albums = []
     var error = ""
-    for (let i = 0; i < allArtistsWithSpotifyIds.length; i++) {
+
+    const artists = await findArtistsByWatchlist(watchlist);
+
+    for (const artist of artists) {
+      var items = []
       if (error.error) {
         break
       }
-      var items = []
-      let artist = allArtistsWithSpotifyIds[i]
-      let body = await get_albums_by_artist(artist.spotify_id, 1, 0)
-      if (body.error) {
-        error = body
+      const artistAlbums = await getArtistAlbums(artist)
+      if (artistAlbums.error) {
+        error = artistAlbums.error
         break
       }
-      let total = body.total
-      let iterations = Math.floor(total/50)
-      for (let j = 0; j <= iterations; j++) {
-        let body = await get_albums_by_artist(artist.spotify_id, 50, j*50)
-        if (body.error) {
-          error = body
-          break
-        }
-        items.push(...body.items)
-      }
+      items.push(...artistAlbums.items)
 
-      let recentAlbums = items
-      .filter(album => !album.artists.map(artist => artist.name.toLowerCase()).includes("Various Artists".toLowerCase()))
-      .filter(album => {
-        return album.release_date >= date
-      })
-
-      for (let j = 0; j < recentAlbums.length; j++) {
-        recentAlbums[j].artist = {
-          name: artist.name,
-          spotify_id: artist.spotify_id,
-          watchlist: artist.watchlist
-        }
-        recentAlbums[j].relatedArtist = {
-          name: '',
-          spotify_id: ''
-        }
-      }
-
-      for (let k = 0; k < allArtistsWithSpotifyIds[i].related_artists.length; k++) {
-        if (error.error) {
-          break
-        }
-        var relatedItems = []
-        let relatedArtist = allArtistsWithSpotifyIds[i].related_artists[k]
-        let relatedBody = await get_albums_by_artist(relatedArtist.spotify_id, 1, 0)
-        if (relatedBody.error) {
-          error = relatedBody
-          break
-        }
-        let total = relatedBody.total
-        let iterations = Math.floor(total/50)
-        for (let j = 0; j <= iterations; j++) {
-          let relatedBody = await get_albums_by_artist(relatedArtist.spotify_id, 50, j*50)
-          if (relatedBody.error) {
-            error = relatedBody
+      if (artist.hasOwnProperty('related_artists')) {
+        for (const relatedArtist of artist.related_artists) {
+          if (error.error) {
             break
           }
-          relatedItems.push(...relatedBody.items)
-        }
-
-        let relatedRecentAlbums = relatedItems
-        .filter(album => !album.artists.map(relatedArtist => relatedArtist.name.toLowerCase()).includes("Various Artists".toLowerCase()))
-        .filter(album => {
-          return album.release_date >= date
-        })
-
-        for (let l = 0; l < relatedRecentAlbums.length; l++) {
-          relatedRecentAlbums[l].artist = {
-            name: artist.name,
-            spotify_id: artist.spotify_id,
-            watchlist: artist.watchlist
+          const relatedArtistAlbums = await getRelatedArtistAlbums(artist, relatedArtist)
+          if (relatedArtistAlbums.error) {
+            error = relatedArtistAlbums.error
+            break
           }
-          relatedRecentAlbums[l].relatedArtist = {
-            name: relatedArtist.name,
-            spotify_id: relatedArtist.spotify_id
-          }
+          items.push(...relatedArtistAlbums.items)
         }
-        recentAlbums.push(...relatedRecentAlbums)
       }
-      recentAlbums.sort((a,b) => (a.release_date > b.release_date) ? 1 : ((b.release_date > a.release_date) ? -1 : 0))
+
+      items.sort((a,b) => (a.release_date > b.release_date) ? 1 : ((b.release_date > a.release_date) ? -1 : 0))
       
       let map = new Map()
-      recentAlbums.forEach(o => map.set(o.name, o));
+      items.forEach(o => map.set(o.uri, o));
       let deduped = [...map.values()];
   
       albums.push(...deduped)
@@ -147,4 +79,38 @@ const recent_albums_by_artist = async (date, watchlist) => {
   });
 }
 
-module.exports = { recent_albums_by_artist, albums_for_artists }
+const getArtistAlbums = async (artist) => {
+  return await getArtistsAlbums(artist, artist.name, artist.spotify_id, artist.watchlist, '', '')
+}
+
+const getRelatedArtistAlbums = async (artist, relatedArtist) => {
+  return await getArtistsAlbums(relatedArtist, artist.name, artist.spotify_id, artist.watchlist, relatedArtist.name, relatedArtist.spotify_id)
+}
+
+const getArtistsAlbums = async (artistToSearch, artistName, artistSpotifyId, artistWatchlist, relatedArtistName, relatedArtistSpotifyId) => {
+  return new Promise(async (resolve) => {
+    const date = getOldDate()
+    var items = []
+    let body = await get_albums_by_artist(artistToSearch.spotify_id, 1, 0)
+    if (body.error) {
+      resolve({ items: items, error: body })
+    }
+    let total = body.total
+    let iterations = Math.floor(total/50)
+    for (let j = 0; j <= iterations; j++) {
+      let body = await get_albums_by_artist(artistToSearch.spotify_id, 50, j*50)
+      if (body.error) {
+        resolve({ items: items, error: body })
+        break
+      }
+      let filtered = body.items
+        .filter(album => !album.artists.map(artist => artist.name.toLowerCase()).includes("Various Artists".toLowerCase()))
+        .filter(album => { return album.release_date > date })
+        .map(album => { album.artist = { name: artistName, spotify_id: artistSpotifyId, watchlist: artistWatchlist }; album.relatedArtist = { name: relatedArtistName, spotify_id: relatedArtistSpotifyId }; return album; })
+      items.push(...filtered)
+    }
+    resolve({ items: items, error: "" })
+  })
+}
+
+module.exports = { recentAlbums, albums_for_artists, getArtistAlbums, getRelatedArtistAlbums }

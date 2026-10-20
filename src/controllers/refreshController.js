@@ -1,5 +1,5 @@
 const asyncHandler = require("express-async-handler");
-const Track = require("../models/playlistTrack");
+const Track = require("../models/track");
 
 const refresh = asyncHandler(async (req, res, next) => {
   let watchlist = req.query.watchlist

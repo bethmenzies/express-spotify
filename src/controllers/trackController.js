@@ -1,4 +1,4 @@
-const Track = require("../models/playlistTrack");
+const Track = require("../models/track");
 const { call_spotify } = require("./spotifyController")
 const { remove_tracks } = require("./playlistController")
 const asyncHandler = require("express-async-handler");
