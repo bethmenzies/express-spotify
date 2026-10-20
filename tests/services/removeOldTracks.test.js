@@ -169,74 +169,67 @@ describe('remove old tracks', () => {
     })
   })
   describe('removeTracksFromDB', () => {
+    /**
+     * assume watchlist is false for all tests unless specified otherwise
+     * 
+     * | case | release_date | to_include | watchlist | expected returned | expected deleted |
+     * |------|--------------|------------|-----------|-------------------|------------------|
+     * | 1    | old          | true       | false     | true              | true             |
+     * | 2    | old          | false      | false     | false             | true             |
+     * | 3    | old          | true       | true      | false             | false            |
+     * | 4    | old          | false      | true      | false             | false            |
+     * | 5    | not old      | any        | any       | false             | false            |
+     */
+
+    const oldDate = getOldDate();
+    const date = getTodaysDate();
+    const testTrack1 = { uri: 'track1', album: { release_date: oldDate }, to_include: true, watchlist: false }
+    const testTrack2 = { uri: 'track2', album: { release_date: oldDate }, to_include: false, watchlist: false }
+    const testTrack3 = { uri: 'track3', album: { release_date: oldDate }, to_include: true, watchlist: true }
+    const testTrack4 = { uri: 'track4', album: { release_date: oldDate }, to_include: false, watchlist: true }
+    const testTrack5a = { uri: 'track5a', album: { release_date: date }, to_include: true, watchlist: false }
+    const testTrack5b = { uri: 'track5b', album: { release_date: date }, to_include: false, watchlist: false }
+    const testTrack5c = { uri: 'track5c', album: { release_date: date }, to_include: true, watchlist: true }
+    const testTrack5d = { uri: 'track5d', album: { release_date: date }, to_include: false, watchlist: true }
+
     it('should return no tracks when no tracks removed', async () => {
-      const date = getTodaysDate()
-      await Track.insertMany([
-        { uri: 'track1', album: { release_date: date }, to_include: true, watchlist: false },
-        { uri: 'track2', album: { release_date: date }, to_include: true, watchlist: false }
-      ])
+      await Track.insertMany([testTrack5a, testTrack5b, testTrack5c, testTrack5d])
       let removedTracks = await removeTracksFromDB(false);
       expect(removedTracks.length).toBe(0)
       const remainingTracks = await Track.find({}).exec();
-      expect(remainingTracks.length).toBe(2)
+      expect(remainingTracks.length).toBe(4)
     })
     it('should return removed old tracks', async () => {
-      const date = getTodaysDate()
-      const oldDate = getOldDate()
-      await Track.insertMany([
-        { uri: 'track1', album: { release_date: oldDate }, to_include: true, watchlist: false },
-        { uri: 'track2', album: { release_date: date }, to_include: true, watchlist: false },
-        { uri: 'track3', album: { release_date: date }, to_include: true, watchlist: false }
-      ])
+      await Track.insertMany([testTrack1, testTrack5a, testTrack5b])
       let removedTracks = await removeTracksFromDB(false);
       expect(removedTracks.length).toBe(1)
       expect(removedTracks[0].uri).toBe('track1')
       const remainingTracks = await Track.find({}).exec();
       expect(remainingTracks.length).toBe(2)
-      expect(remainingTracks[0].uri).toBe('track2')
-      expect(remainingTracks[1].uri).toBe('track3')
+      expect(remainingTracks[0].uri).toBe('track5a')
+      expect(remainingTracks[1].uri).toBe('track5b')
     })
     it('should return removed old tracks with to_include=true, but delete regardless of to_include', async () => {
-      const date = getTodaysDate()
-      const oldDate = getOldDate()
-      await Track.insertMany([
-        { uri: 'track1', album: { release_date: oldDate }, to_include: true, watchlist: false },
-        { uri: 'track2', album: { release_date: oldDate }, to_include: false, watchlist: false },
-        { uri: 'track3', album: { release_date: date }, to_include: true, watchlist: false }
-      ])
+      await Track.insertMany([testTrack1, testTrack2, testTrack5a])
       let removedTracks = await removeTracksFromDB(false);
       expect(removedTracks.length).toBe(1)
       expect(removedTracks[0].uri).toBe('track1')
       let remainingTracks = await Track.find({}).exec();
       expect(remainingTracks.length).toBe(1)
-      expect(remainingTracks[0].uri).toBe('track3')
+      expect(remainingTracks[0].uri).toBe('track5a')
     })
     it('should return removed old tracks only in the watchlist specified', async () => {
-      const date = getTodaysDate()
-      const oldDate = getOldDate()
-      await Track.insertMany([
-        { uri: 'track1', album: { release_date: oldDate }, to_include: true, watchlist: false },
-        { uri: 'track2', album: { release_date: oldDate }, to_include: true, watchlist: true },
-        { uri: 'track3', album: { release_date: date }, to_include: true, watchlist: false }
-      ])
+      await Track.insertMany([testTrack1, testTrack3, testTrack5a])
       let removedTracks = await removeTracksFromDB(false);
       expect(removedTracks.length).toBe(1)
       expect(removedTracks[0].uri).toBe('track1')
       let remainingTracks = await Track.find({}).exec();
       expect(remainingTracks.length).toBe(2)
-      expect(remainingTracks[0].uri).toBe('track2')
-      expect(remainingTracks[1].uri).toBe('track3')
+      expect(remainingTracks[0].uri).toBe('track3')
+      expect(remainingTracks[1].uri).toBe('track5a')
     })
     it('should return removed old tracks with to_include=true and in the watchlist specified, and delete regardless of to_include but in the watchlist specified', async () => {
-      const date = getTodaysDate()
-      const oldDate = getOldDate()
-      await Track.insertMany([
-        { uri: 'track1', album: { release_date: oldDate }, to_include: true, watchlist: false },
-        { uri: 'track2', album: { release_date: oldDate }, to_include: false, watchlist: false },
-        { uri: 'track3', album: { release_date: oldDate }, to_include: true, watchlist: true },
-        { uri: 'track4', album: { release_date: oldDate }, to_include: false, watchlist: true },
-        { uri: 'track5', album: { release_date: date }, to_include: true, watchlist: false }
-      ])
+      await Track.insertMany([testTrack1, testTrack2, testTrack3, testTrack4, testTrack5a])
       let removedTracks = await removeTracksFromDB(false);
       expect(removedTracks.length).toBe(1)
       expect(removedTracks[0].uri).toBe('track1')
@@ -244,54 +237,34 @@ describe('remove old tracks', () => {
       expect(remainingTracks.length).toBe(3)
       expect(remainingTracks[0].uri).toBe('track3')
       expect(remainingTracks[1].uri).toBe('track4')
-      expect(remainingTracks[2].uri).toBe('track5')
+      expect(remainingTracks[2].uri).toBe('track5a')
     })
     it('should return no tracks when there are no tracks', async () => {
       let removedTracks = await removeTracksFromDB(false);
       expect(removedTracks.length).toBe(0)
     })
     it('should return no tracks when to_include=false, but delete regardless of to_include', async () => {
-      const date = getTodaysDate()
-      const oldDate = getOldDate()
-      await Track.insertMany([
-        { uri: 'track1', album: { release_date: oldDate }, to_include: false, watchlist: false },
-        { uri: 'track2', album: { release_date: oldDate }, to_include: false, watchlist: false },
-        { uri: 'track3', album: { release_date: date }, to_include: false, watchlist: false }
-      ])
+      await Track.insertMany([testTrack2, testTrack5b])
       let removedTracks = await removeTracksFromDB(false);
       expect(removedTracks.length).toBe(0)
       let remainingTracks = await Track.find({}).exec();
       expect(remainingTracks.length).toBe(1)
-      expect(remainingTracks[0].uri).toBe('track3')
+      expect(remainingTracks[0].uri).toBe('track5b')
     })
     it('should return no tracks when to_inclide=false and in the watchlist specified, and delete regardless of to_include but in the watchlist specified', async () => {
-      const date = getTodaysDate()
-      const oldDate = getOldDate()
-      await Track.insertMany([
-        { uri: 'track1', album: { release_date: oldDate }, to_include: false, watchlist: true },
-        { uri: 'track2', album: { release_date: oldDate }, to_include: false, watchlist: true },
-        { uri: 'track3', album: { release_date: date }, to_include: false, watchlist: true }
-      ])
+      await Track.insertMany([testTrack4, testTrack5d])
       let removedTracks = await removeTracksFromDB(false);
       expect(removedTracks.length).toBe(0)
       let remainingTracks = await Track.find({}).exec();
-      expect(remainingTracks.length).toBe(3)
-      expect(remainingTracks[0].uri).toBe('track1')
-      expect(remainingTracks[1].uri).toBe('track2')
-      expect(remainingTracks[2].uri).toBe('track3')
+      expect(remainingTracks.length).toBe(2)
+      expect(remainingTracks[0].uri).toBe('track4')
+      expect(remainingTracks[1].uri).toBe('track5d')
     })
     it('should return old tracks when to_include=true, and delete all tracks if all tracks are old', async () => {
-      const date = getTodaysDate()
-      const oldDate = getOldDate()
-      await Track.insertMany([
-        { uri: 'track1', album: { release_date: oldDate }, to_include: true, watchlist: false },
-        { uri: 'track2', album: { release_date: oldDate }, to_include: false, watchlist: false },
-        { uri: 'track3', album: { release_date: oldDate }, to_include: true, watchlist: false }
-      ])
+      await Track.insertMany([testTrack1, testTrack2])
       let removedTracks = await removeTracksFromDB(false);
-      expect(removedTracks.length).toBe(2)
+      expect(removedTracks.length).toBe(1)
       expect(removedTracks[0].uri).toBe('track1')
-      expect(removedTracks[1].uri).toBe('track3')
       let remainingTracks = await Track.find({}).exec();
       expect(remainingTracks.length).toBe(0)
     })
