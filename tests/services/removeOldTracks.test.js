@@ -2,6 +2,10 @@ const { removeTracksFromDB, removeTracksFromPlaylist } = require('../../src/serv
 const { getOldDate, getTodaysDate } = require('../../src/utils/dateUtils');
 const Track = require('../../src/models/track');
 const { remove_tracks } = require('../../src/controllers/playlistController');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const mongoose = require('mongoose');
+
+let mongoServer;
 
 jest.mock('../../src/controllers/playlistController', () => {
   return {
@@ -11,9 +15,22 @@ jest.mock('../../src/controllers/playlistController', () => {
 
 describe('remove old tracks', () => {
   describe('removeTracksFromDB', () => {
+    beforeAll(async () => {
+      mongoServer = await MongoMemoryServer.create({
+        binary: {
+          version: '7.0.15'
+        }
+      });
+      const uri = mongoServer.getUri();
+      await mongoose.connect(uri);
+    });
     beforeEach(async () => {
       await Track.deleteMany({}).exec();
     })
+    afterAll(async () => {
+      await mongoose.disconnect();
+      await mongoServer.stop();
+    });
     /**
      * assume watchlist is false for all tests unless specified otherwise
      * 
@@ -96,7 +113,7 @@ describe('remove old tracks', () => {
       expect(remainingTracks.length).toBe(1)
       expect(remainingTracks[0].uri).toBe('track5b')
     })
-    it('should return no tracks when to_inclide=false and in the watchlist specified, and delete regardless of to_include but in the watchlist specified', async () => {
+    it('should return no tracks when to_include=false and in the watchlist specified, and delete regardless of to_include but in the watchlist specified', async () => {
       await Track.insertMany([testTrack4, testTrack5d])
       let removedTracks = await removeTracksFromDB(false);
       expect(removedTracks.length).toBe(0)

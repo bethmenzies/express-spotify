@@ -1,10 +1,27 @@
 const Track = require('../../src/models/track');
 const { findTracksLteDate, deleteTracksLteDate } = require('../../src/db/tracks');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const mongoose = require('mongoose');
+
+let mongoServer;
 
 describe('findTracksLteDate', () => {
+  beforeAll(async () => {
+    mongoServer = await MongoMemoryServer.create({
+      binary: {
+        version: '7.0.15'
+      }
+    });
+    const uri = mongoServer.getUri();
+    await mongoose.connect(uri);
+  });
   beforeEach(async () => {
     await Track.deleteMany({}).exec();
   })
+  afterAll(async () => {
+    await mongoose.disconnect();
+    await mongoServer.stop();
+  });
   it('returns old tracks', async () => {
     await Track.insertMany([ 
       { uri: 'track1', album: { release_date: '2022-01-01' }, to_include: true, watchlist: false },
@@ -74,9 +91,22 @@ describe('findTracksLteDate', () => {
   })
 })
 describe('deleteTracksLteDate', () => {
+  beforeAll(async () => {
+    mongoServer = await MongoMemoryServer.create({
+      binary: {
+        version: '7.0.15'
+      }
+    });
+    const uri = mongoServer.getUri();
+    await mongoose.connect(uri);
+  });
   beforeEach(async () => {
     await Track.deleteMany({}).exec();
   })
+  afterAll(async () => {
+    await mongoose.disconnect();
+    await mongoServer.stop();
+  });
   it('deletes tracks by date', async () => {
     await Track.insertMany([ 
       { uri: 'track1', album: { release_date: '2022-01-01' }, to_include: true, watchlist: false },

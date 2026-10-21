@@ -39,7 +39,6 @@ describe('get albums', () => {
         .mockResolvedValueOnce(second);
 
       const albums = await getArtistAlbums(artist1);
-      console.log(albums)
 
       expect(albums).toHaveProperty('error')
       expect(albums.error).toBe("")
@@ -55,7 +54,6 @@ describe('get albums', () => {
         .mockResolvedValueOnce(sixth)
 
       const albums = await getRelatedArtistAlbums(artist2, relatedArtist1)
-      console.log(albums)
 
       expect(albums).toHaveProperty('error')
       expect(albums.error).toBe('')

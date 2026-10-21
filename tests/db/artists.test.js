@@ -1,10 +1,27 @@
 const Artist = require('../../src/models/artist');
 const { findArtistsByWatchlist } = require('../../src/db/artists');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const mongoose = require('mongoose');
+
+let mongoServer;
 
 describe('findArtistsByWatchlist', () => {
+  beforeAll(async () => {
+    mongoServer = await MongoMemoryServer.create({
+      binary: {
+        version: '7.0.15'
+      }
+    });
+    const uri = mongoServer.getUri();
+    await mongoose.connect(uri);
+  });
   beforeEach(async () => {
     await Artist.deleteMany({}).exec();
   })
+  afterAll(async () => {
+    await mongoose.disconnect();
+    await mongoServer.stop();
+  });
   it('returns artists with the specified watchlist value', async () => {
     await Artist.insertMany([
       { name: 'Artist 1', spotify_id: 'artist1', watchlist: true },
