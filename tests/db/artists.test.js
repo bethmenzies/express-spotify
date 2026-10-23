@@ -34,4 +34,13 @@ describe('findArtistsByWatchlist', () => {
     expect(artists[0].name).toBe('Artist 1');
     expect(artists[1].name).toBe('Artist 3');
   })
+  it('returns artists in name order', async () => {
+    await Artist.insertMany([
+      { name: 'ZZZ', spotify_id: 'ZZZ', watchlist: false },
+      { name: 'AAA', spotify_id: 'AAA', watchlist: false }
+    ])
+    const artists = await findArtistsByWatchlist(false)
+    expect(artists[0].name).toBe('AAA')
+    expect(artists[1].name).toBe('ZZZ')
+  })
 })

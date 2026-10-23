@@ -3,7 +3,6 @@ const asyncHandler = require("express-async-handler");
 const { recentAlbums, albums_for_artists } = require('./albumController.js');
 const { tracks_by_album, artist_tracks_by_album } = require('./trackController.js');
 const { removeTracksFromDB, removeTracksFromPlaylist } = require('../services/trackService.js');
-const { getOldDate } = require('../utils/dateUtils.js');
 
 const runForLatestTracks = asyncHandler(async (req, res, next) => {
   let watchlist = req.query.watchlist
@@ -36,39 +35,39 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
   }
   
   if (playlistId === undefined || playlistId === null) {
-    let playlist = await create_playlist();
-    if (playlist.error.error) {
+    let playlistResponse = await create_playlist();
+    if (playlistResponse.error.error) {
       res.render("run", {
         title: "Error!",
         state: "created",
         error: "Something went wrong when creating a new playlist. Try again - or wait some time and try later.",
-        errorStatus: playlist.error.error.status,
-        errorMessage: playlist.error.error.message,
+        errorStatus: playlistResponse.error.error.status,
+        errorMessage: playlistResponse.error.error.message,
         removedTracks: removedTracks,
         tracks: [],
         watchlist: watchlist
       });
       return;
     }
-    playlistId = playlist.id
+    playlistId = playlistResponse.id
     playlistState = "created"
   }
 
-  let albums = await recentAlbums(watchlist);
-  if (albums.error.error) {
+  let albumsResponse = await recentAlbums(watchlist);
+  if (albumsResponse.error.error) {
     res.render("run", {
       title: "Error!",
       state: playlistState,
       error: "Something failed when getting recent albums. Please try again.",
-      errorStatus: albums.error.error.status,
-      errorMessage: albums.error.error.message,
+      errorStatus: albumsResponse.error.error.status,
+      errorMessage: albumsResponse.error.error.message,
       removedTracks: removedTracks,
       tracks: [],
       watchlist: watchlist
     });
     return;
   }
-  let tracks = await tracks_by_album(albums.albums, watchlist);
+  let tracks = await tracks_by_album(albumsResponse.albums, watchlist);
   if (tracks.error.error) {
     res.render("run", {
       title: "Error!",

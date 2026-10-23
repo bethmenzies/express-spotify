@@ -135,6 +135,10 @@ const tracks_by_album = async (albums, watchlist) => {
               artist: {
                 name: albums[i].artist.name,
                 spotify_id: albums[i].artist.spotify_id,
+                related_artist: {
+                  name: albums[i].relatedArtist.name,
+                  spotify_id: albums[i].relatedArtist.spotify_id
+                },
                 watchlist: albums[i].artist.watchlist
               }
             },

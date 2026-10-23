@@ -1,5 +1,4 @@
-const { getOldDate } = require("../utils/dateUtils");
-const { call_spotify } = require("./spotifyController");
+const { call_spotify } = require("../controllers/spotifyController");
 
 const get_albums_by_artist = async (artistId, limit, offset) => {
   const options = {

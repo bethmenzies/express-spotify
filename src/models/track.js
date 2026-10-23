@@ -10,7 +10,7 @@ const TrackRelatedArtistSchema = new Schema({
 const TrackArtistSchema = new Schema({
   name: { type: String, maxLength: 100 },
   spotify_id: { type: String, maxLength: 100 },
-  related_artists: { type: [TrackRelatedArtistSchema] },
+  related_artist: { type: TrackRelatedArtistSchema },
   watchlist: { type: Boolean }
 });
 
