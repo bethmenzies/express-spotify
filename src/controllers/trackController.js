@@ -1,20 +1,8 @@
 const Track = require("../models/track");
-const { call_spotify } = require("./spotifyController")
 const { remove_tracks } = require("./playlistController")
 const asyncHandler = require("express-async-handler");
-
-const get_tracks_by_album = async (albumId, limit, offset) => {
-  const options = {
-    hostname: 'api.spotify.com',
-    path: `/v1/albums/${albumId}/tracks?limit=${limit}&offset=${offset}`,
-    method: 'GET',
-    headers: {
-        Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
-    },
-    json: true
-  }
-  return await call_spotify(options);
-}
+const { get_tracks_by_album } = require('../services/trackService')
+const { findTrackByUri, updateTrackPlaylistPosition } = require('../db/tracks')
 
 const artist_tracks_by_album = async (albums, artistNames) => {
   return new Promise(async (resolve) => {
@@ -91,75 +79,55 @@ const artist_tracks_by_album = async (albums, artistNames) => {
   })
 }
 
-const tracks_by_album = async (albums, watchlist) => { 
+const recentTracks = async (albums) => { 
+  var tracks = [];
+  var error = ""
+
+  for (const album of albums) {
+    const tracksResponse = await getAlbumTracks(album)
+    if (tracksResponse.error.error) {
+      error = tracksResponse.error
+      break
+    }
+    const filteredTracks = filterTracks(tracksResponse.tracks, album)
+    const tracksWithAlbumArtists = setAlbumOnTracks(filteredTracks, album)
+    tracks.push(...tracksWithAlbumArtists)
+  }
+  return { tracks: tracks, error: error }
+}
+
+const getAlbumTracks = async (album) => {
   return new Promise(async (resolve) => {
-    var playlistPosition = 0
-    var tracks = [];
-    var error = ""
-    for (let i = 0; i < albums.length; i++) {
-      var albumTracks = []
-      let body = await get_tracks_by_album(albums[i].id, 1, 0)
+    var tracks = []
+    let body = await get_tracks_by_album(album.id, 1, 0)
+    if (body.error) {
+      resolve({ tracks: tracks, error: body })
+    }
+    let total = body.total
+    let iterations = Math.floor(total/50)
+    for (let j = 0; j <= iterations; j++) {
+      let body = await get_tracks_by_album(album.id, 50, j*50)
       if (body.error) {
-        error = body
+        resolve({ tracks: tracks, error: body })
         break
       }
-      let total = body.total
-      let iterations = Math.floor(total/50)
-      for (let j = 0; j <= iterations; j++) {
-        let body = await get_tracks_by_album(albums[i].id, 50, j*50)
-        if (body.error) {
-          error = body
-          break
-        }
-        albumTracks.push(...body.items)
-      }
-
-      for (let j = 0; j < albumTracks.length; j++) {
-        let track = albumTracks[j];
-        if (!track.artists.map(artist => artist.name.toLowerCase()).includes(albums[i].artist.name.toLowerCase()) &&
-            !track.artists.map(relatedArtist => relatedArtist.name.toLowerCase()).includes(albums[i].relatedArtist.name.toLowerCase())) {
-          continue
-        }
-
-        const existingTrack = await Track.find({ uri: track.uri, 'album.artist.name': albums[i].artist.name, watchlist: watchlist }).exec();
-        if (existingTrack.length === 0) {
-          const new_track = new Track({
-            name: track.name.substring(0, 100),
-            spotify_id: track.id,
-            uri: track.uri,
-            url: track.external_urls.spotify,
-            album: {
-              name: albums[i].name.substring(0, 100),
-              spotify_id: albums[i].id,
-              release_date: albums[i].release_date,
-              artist: {
-                name: albums[i].artist.name,
-                spotify_id: albums[i].artist.spotify_id,
-                related_artist: {
-                  name: albums[i].relatedArtist.name,
-                  spotify_id: albums[i].relatedArtist.spotify_id
-                },
-                watchlist: albums[i].artist.watchlist
-              }
-            },
-            track_number: track.track_number,
-            playlist_position: playlistPosition,
-            to_include: true,
-            watchlist: watchlist
-          });
-          await new_track.save();
-          tracks.push(new_track)
-          playlistPosition++
-        } else {
-          if (existingTrack[0].to_include) {
-            await Track.findByIdAndUpdate(existingTrack[0]._id, { playlist_position: playlistPosition }, {}).exec();
-            playlistPosition++
-          }
-        }
-      }
+      tracks.push(...body.items)
     }
-    resolve({tracks: tracks, error: error});
-  });
+    resolve({ tracks: tracks, error: ""})
+  })
+}
+
+const filterTracks = (tracks, album) => {
+  return tracks.filter(track => { isTrackArtist(track, album) })
+}
+
+const isTrackArtist = (track, album) => {
+  return track.artists.map(artist => artist.name.toLowerCase()).includes(album.artist.name.toLowerCase()) ||
+    track.artists.map(relatedArtist => relatedArtist.name.toLowerCase()).includes(album.relatedArtist.name.toLowerCase())
+}
+
+const setAlbumOnTracks = (tracks, album) => {
+  return tracks.map(track => { track.album = album; return track; })
 }
 
 const track_list = asyncHandler(async (req, res, next) => {
@@ -223,4 +191,4 @@ const track_delete_post = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { tracks_by_album, track_list, track_delete_get, track_delete_post, artist_tracks_by_album }
+module.exports = { recentTracks, getAlbumTracks, isTrackArtist, filterTracks, setAlbumOnTracks, track_list, track_delete_get, track_delete_post, artist_tracks_by_album }

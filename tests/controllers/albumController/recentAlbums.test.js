@@ -87,7 +87,6 @@ describe('get albums', () => {
         .mockResolvedValueOnce({ total: 2, items: [ { release_date: '2026-01-08', artists: [{ name: "Artist 2" }], uri: 'album7' }, { release_date: '2026-01-07', artists: [{ name: "Artist 2" }], uri: 'album8' } ] })
 
       const albumsResponse = await recentAlbums(false)
-      console.log(albumsResponse.albums)
       expect(albumsResponse.albums[0].uri).toBe('album2')
       expect(albumsResponse.albums[1].uri).toBe('album4')
       expect(albumsResponse.albums[2].uri).toBe('album5')
@@ -333,7 +332,6 @@ describe('get albums', () => {
       verifySetAlbum(setAlbums[0])
       verifySetAlbum(setAlbums[1])
     })
-
   })
   describe('sortAlbumsByDate', () => {
     it('sorts albums by release_date', () => {

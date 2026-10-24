@@ -1,8 +1,8 @@
 const { add_tracks, create_playlist, add_tracks_no_playlist_position, add_tracks_to_artist_playlists } = require("./playlistController.js")
 const asyncHandler = require("express-async-handler");
 const { recentAlbums, albums_for_artists } = require('./albumController.js');
-const { tracks_by_album, artist_tracks_by_album } = require('./trackController.js');
-const { removeTracksFromDB, removeTracksFromPlaylist } = require('../services/trackService.js');
+const { recentTracks, artist_tracks_by_album } = require('./trackController.js');
+const { removeTracksFromDB, removeTracksFromPlaylist, updateTracksInDB } = require('../services/trackService.js');
 
 const runForLatestTracks = asyncHandler(async (req, res, next) => {
   let watchlist = req.query.watchlist
@@ -67,21 +67,22 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
     });
     return;
   }
-  let tracks = await tracks_by_album(albumsResponse.albums, watchlist);
-  if (tracks.error.error) {
+  let tracksResponse = await recentTracks(albumsResponse.albums, watchlist);
+  if (tracksResponse.error.error) {
     res.render("run", {
       title: "Error!",
       state: playlistState,
       error: "Something failed when getting album tracks. Please try again.",
-      errorStatus: tracks.error.error.status,
-      errorMessage: tracks.error.error.message,
+      errorStatus: tracksResponse.error.error.status,
+      errorMessage: tracksResponse.error.error.message,
       removedTracks: removedTracks,
-      tracks: tracks.tracks,
+      tracks: [],
       watchlist: watchlist
     });
     return;
   }
-  if (tracks.tracks.length === 0) {
+  let addedTracks = await updateTracksInDB(tracksResponse.tracks, watchlist)
+  if (addedTracks.length === 0) {
     res.render("run", {
       title: "Completed!",
       state: null,
@@ -89,13 +90,13 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
       errorStatus: null,
       errorMessage: null,
       removedTracks: removedTracks,
-      tracks: tracks.tracks,
+      tracks: addedTracks,
       watchlist: watchlist
     });
     return;
   }
   
-  let playlist = await add_tracks(playlistId, tracks.tracks);
+  let playlist = await add_tracks(playlistId, addedTracks);
   if (!playlist.allSuccess) {
     res.render("run", {
       title: "Error!",
@@ -104,12 +105,12 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
       errorStatus: playlist.error.error.status,
       errorMessage: playlist.error.error.message,
       removedTracks: removedTracks,
-      tracks: tracks.tracks,
+      tracks: addedTracks,
       watchlist: watchlist
     });
     return;
   } 
-  let artistPlaylists = await add_tracks_to_artist_playlists(tracks.tracks)
+  let artistPlaylists = await add_tracks_to_artist_playlists(addedTracks)
   if (!artistPlaylists.allSuccess) {
     res.render("run", {
       title: "Error!",
@@ -118,7 +119,7 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
       errorStatus: artistPlaylists.error.error.status,
       errorMessage: artistPlaylists.error.error.message,
       removedTracks: removedTracks,
-      tracks: tracks.tracks,
+      tracks: addedTracks,
       watchlist: watchlist
     });
     return;
@@ -130,7 +131,7 @@ const runForLatestTracks = asyncHandler(async (req, res, next) => {
       errorStatus: null,
       errorMessage: null,
       removedTracks: removedTracks,
-      tracks: tracks.tracks,
+      tracks: addedTracks,
       watchlist: watchlist
     });
     return;
