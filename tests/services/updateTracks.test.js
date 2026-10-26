@@ -1,4 +1,4 @@
-const { updateTracksInDB } = require('../../src/services/trackService')
+const { updateTracksInDB } = require('../../src/services/updateTracksInDB')
 const Track = require('../../src/models/track')
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');

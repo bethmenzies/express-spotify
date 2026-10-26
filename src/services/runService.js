@@ -1,7 +1,8 @@
 const { add_tracks, create_playlist, add_tracks_to_artist_playlists } = require("../controllers/playlistController.js")
 const { recentAlbums } = require('../controllers/albumController.js');
 const { recentTracks } = require('../controllers/trackController.js');
-const { removeTracksFromDB, removeTracksFromPlaylist, updateTracksInDB } = require('./trackService.js');
+const { removeTracksFromDB, removeTracksFromPlaylist } = require('./trackService.js');
+const { updateTracksInDB } = require('./updateTracksInDB.js')
 
 const runForLatestTracks = async (watchlist) => {  
   let removedTracks = await removeTracksFromDB(watchlist)
@@ -33,13 +34,13 @@ const runForLatestTracks = async (watchlist) => {
   
   if (playlistId === undefined || playlistId === null) {
     let playlistResponse = await create_playlist();
-    if (playlistResponse.error.error) {
+    if (playlistResponse.error) {
       return {
         title: "Error!",
         state: "created",
         error: "Something went wrong when creating a new playlist. Try again - or wait some time and try later.",
-        errorStatus: playlistResponse.error.error.status,
-        errorMessage: playlistResponse.error.error.message,
+        errorStatus: playlistResponse.error.status,
+        errorMessage: playlistResponse.error.message,
         removedTracks: removedTracks,
         tracks: [],
         watchlist: watchlist
