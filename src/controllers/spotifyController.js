@@ -7,8 +7,13 @@ const call_spotify = async (options, body) => {
       response.setEncoding('utf8');
       response.on('data', (chunk) => responseBody = responseBody + chunk);
       response.on('end', function () {
-        parsedBody = JSON.parse(responseBody + '');
-        return resolve(parsedBody);
+        try {
+          parsedBody = JSON.parse(responseBody + '');
+          return resolve(parsedBody);
+        } catch (e) {
+          console.error(e)
+          return responseBody
+        }
       });
     });
   

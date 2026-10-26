@@ -52,7 +52,7 @@ const recentAlbums = async (watchlist) => {
     const artistAlbums = setAlbumsWithRelatedArtists(filteredAlbums, artist.name, artist.spotify_id, artist.watchlist, '', '')
     albums.push(...artistAlbums)
 
-    if (artist.hasOwnProperty('related_artists')) {
+    if (artist.related_artists && artist.related_artists.length > 0) {
       for (const relatedArtist of artist.related_artists) {
         if (error.error) {
           break

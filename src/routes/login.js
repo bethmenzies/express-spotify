@@ -74,7 +74,6 @@ router.get('/callback', function(req, res) {
     });
 
     response.on('end', () => {
-      console.log(`Response status code: ${response.statusCode}`);
       const body = JSON.parse(data);
       if (response.statusCode === 200) {
         process.env.ACCESS_TOKEN = body.access_token;
