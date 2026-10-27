@@ -1,10 +1,11 @@
-const Artist = require("../models/artist");
-const Track = require("../models/track");
+const Artist = require("../services/db/models/artist");
+const Track = require("../services/db/models/track");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const { add_included_tracks } = require("./playlistController");
 const { runForArtist } = require("./runController")
-const { remove_tracks, get_spotify_id_for_artist } = require('../services/spotifyService')
+const { remove_tracks } = require('../services/spotify/playlist') 
+const { get_spotify_id_for_artist } = require('../services/spotify/artist')
 
 const run_for_artist_get = asyncHandler(async (req, res, next) => {
   const artist = await Artist.findById(req.params.id).exec();

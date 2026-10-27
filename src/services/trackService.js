@@ -1,7 +1,6 @@
-const { remove_tracks } = require("../services/spotifyService");
+const { remove_tracks } = require("./spotify/playlist");
 const { getOldDate } = require("../utils/dateUtils");
-const { findTracksLteDate, deleteTracksLteDate } = require("../db/tracks");
-const { findTrackByUri, updateTrackPlaylistPosition, saveNewTrack } = require("../db/tracks");
+const { findTracksLteDate, deleteTracksLteDate, findTrackByUri, updateTrackPlaylistPosition, saveNewTrack } = require("./db/tracks");
 
 const removeTracksFromDB = async (watchlist) => {
   const date = getOldDate()

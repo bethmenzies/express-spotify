@@ -1,7 +1,7 @@
 const { addTracksToPlaylist } = require('../../../src/controllers/playlistController')
-const { call_add_tracks_to_playlist } = require('../../../src/services/spotifyService')
+const { call_add_tracks_to_playlist } = require('../../../src/services/spotify/playlist')
 
-jest.mock('../../../src/services/spotifyService', () => {
+jest.mock('../../../src/services/spotify/playlist', () => {
   return {
     call_add_tracks_to_playlist: jest.fn()
   };

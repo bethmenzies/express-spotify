@@ -2,7 +2,7 @@ const { addTracksToPlaylist, add_tracks_to_artist_playlists } = require("../cont
 const { recentAlbums } = require('../controllers/albumController.js');
 const { recentTracks } = require('../controllers/trackController.js');
 const { removeTracksFromDB, removeTracksFromPlaylist, updateTracksInDB } = require('./trackService.js');
-const { create_playlist } = require("../services/spotifyService.js")
+const { create_playlist } = require("../services/spotify/playlist.js")
 
 const runForLatestTracks = async (watchlist) => {  
   let removedTracks = await removeTracksFromDB(watchlist)

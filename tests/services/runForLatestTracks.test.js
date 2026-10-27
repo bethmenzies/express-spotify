@@ -3,12 +3,12 @@ const { removeTracksFromDB, removeTracksFromPlaylist } = require('../../src/serv
 const { addTracksToPlaylist, add_tracks_to_artist_playlists } = require('../../src/controllers/playlistController')
 const { recentAlbums } = require('../../src/controllers/albumController')
 const { recentTracks } = require('../../src/controllers/trackController')
-const Artist = require('../../src/models/artist')
-const Track = require('../../src/models/track')
+const Artist = require('../../src/services/db/models/artist')
+const Track = require('../../src/services/db/models/track')
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
 const returnValues = require('../resources/returnValues')
-const { create_playlist } = require('../../src/services/spotifyService')
+const { create_playlist } = require('../../src/services/spotify/playlist')
 
 let mongoServer;
 
@@ -21,7 +21,7 @@ jest.mock('../../src/services/trackService', () => {
   }
 })
 
-jest.mock('../../src/services/spotifyService', () => {
+jest.mock('../../src/services/spotify/playlist', () => {
   return {
     create_playlist: jest.fn(),
   }

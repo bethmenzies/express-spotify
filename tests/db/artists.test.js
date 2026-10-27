@@ -1,5 +1,5 @@
-const Artist = require('../../src/models/artist');
-const { findArtistsByWatchlist } = require('../../src/db/artists');
+const Artist = require('../../src/services/db/models/artist');
+const { findArtistsByWatchlist } = require('../../src/services/db/artists');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
 

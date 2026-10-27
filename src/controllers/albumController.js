@@ -1,5 +1,5 @@
-const { get_albums_by_artist } = require("../services/spotifyService");
-const { findArtistsByWatchlist } = require("../db/artists");
+const { get_albums_by_artist } = require("../services/spotify/album");
+const { findArtistsByWatchlist } = require("../services/db/artists");
 const { getOldDate } = require("../utils/dateUtils");
 
 const albums_for_artists = async (artistAndSpotifyIds) => {

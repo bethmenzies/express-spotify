@@ -1,7 +1,7 @@
-const Track = require("../models/track");
-const { remove_tracks } = require("../services/spotifyService")
+const Track = require("../services/db/models/track");
+const { remove_tracks } = require("../services/spotify/playlist")
 const asyncHandler = require("express-async-handler");
-const { get_tracks_by_album } = require('../services/spotifyService')
+const { get_tracks_by_album } = require('../services/spotify/track')
 
 const artist_tracks_by_album = async (albums, artistNames) => {
   return new Promise(async (resolve) => {

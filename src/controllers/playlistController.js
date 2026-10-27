@@ -1,5 +1,5 @@
-const Track = require("../models/track");
-const { call_add_tracks_to_playlist, get_playlists } = require('../services/spotifyService')
+const Track = require("../services/db/models/track");
+const { call_add_tracks_to_playlist, get_playlists } = require('../services/spotify/playlist')
 
 const chunkArray = (array, chunkSize) => {
   const numberOfChunks = Math.ceil(array.length / chunkSize)

@@ -3,7 +3,7 @@ const asyncHandler = require("express-async-handler");
 const { albums_for_artists } = require('./albumController.js');
 const { artist_tracks_by_album } = require('./trackController.js');
 const { runForLatestTracks } = require("../services/runService.js")
-const { create_playlist } = require("../services/spotifyService.js")
+const { create_playlist } = require("../services/spotify/playlist.js")
 
 const run = asyncHandler(async (req, res, next) => {
   const watchlist = req.query.watchlist
