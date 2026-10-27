@@ -1,4 +1,4 @@
-const Track = require('../models/track');
+const Track = require('./models/track');
 
 const findTracksLteDate = async (date, watchlist, fields) => {
   return await Track.find({ 'album.release_date': { $lte: date }, watchlist: watchlist }, fields).exec();

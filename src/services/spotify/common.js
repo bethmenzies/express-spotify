@@ -1,4 +1,4 @@
-var https = require('https');
+const https = require('https');
 
 const call_spotify = async (options, body) => {
   return new Promise((resolve) => {
@@ -10,7 +10,7 @@ const call_spotify = async (options, body) => {
         try {
           parsedBody = JSON.parse(responseBody + '');
           if (response.statusCode === 429) {
-            let minutes = Math.ceil(response.headers['retry-after'] / 60)
+            const minutes = Math.ceil(response.headers['retry-after'] / 60)
             parsedBody.error.message = `${parsedBody.error.message}, please try again after ${minutes} minutes`
           }
           return resolve(parsedBody);
@@ -32,4 +32,4 @@ const call_spotify = async (options, body) => {
   });
 };
 
-module.exports = { call_spotify }
+module.exports = call_spotify

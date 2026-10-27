@@ -1,13 +1,13 @@
 const { removeTracksFromDB, removeTracksFromPlaylist } = require('../../src/services/trackService');
 const { getOldDate, getTodaysDate } = require('../../src/utils/dateUtils');
-const Track = require('../../src/models/track');
-const { remove_tracks } = require('../../src/controllers/playlistController');
+const Track = require('../../src/services/db/models/track');
+const { remove_tracks } = require('../../src/services/spotify/playlist');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
 
 let mongoServer;
 
-jest.mock('../../src/controllers/playlistController', () => {
+jest.mock('../../src/services/spotify/playlist', () => {
   return {
     remove_tracks: jest.fn()
   };

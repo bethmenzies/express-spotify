@@ -1,5 +1,5 @@
-const Track = require('../../src/models/track');
-const { findTracksLteDate, deleteTracksLteDate, findTrackByUri, updateTrackPlaylistPosition, saveNewTrack } = require('../../src/db/tracks');
+const Track = require('../../src/services/db/models/track');
+const { findTracksLteDate, deleteTracksLteDate, findTrackByUri, updateTrackPlaylistPosition, saveNewTrack } = require('../../src/services/db/tracks');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
 

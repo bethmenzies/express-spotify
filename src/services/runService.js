@@ -1,7 +1,8 @@
-const { add_tracks, create_playlist, add_tracks_to_artist_playlists } = require("../controllers/playlistController.js")
+const { addTracksToPlaylist, add_tracks_to_artist_playlists } = require("../controllers/playlistController.js")
 const { recentAlbums } = require('../controllers/albumController.js');
 const { recentTracks } = require('../controllers/trackController.js');
 const { removeTracksFromDB, removeTracksFromPlaylist, updateTracksInDB } = require('./trackService.js');
+const { create_playlist } = require("../services/spotify/playlist.js")
 
 const runForLatestTracks = async (watchlist) => {  
   let removedTracks = await removeTracksFromDB(watchlist)
@@ -89,14 +90,14 @@ const runForLatestTracks = async (watchlist) => {
     }
   }
   
-  let playlist = await add_tracks(playlistId, addedTracks);
-  if (!playlist.allSuccess) {
+  let addToPlaylist = await addTracksToPlaylist(playlistId, addedTracks);
+  if (addToPlaylist.error) {
     return {
       title: "Error!",
       state: playlistState,
       error: "Something went wrong when adding tracks to playlist. Everything will be in the DB though - so try using the create from DB option.",
-      errorStatus: playlist.error.error.status,
-      errorMessage: playlist.error.error.message,
+      errorStatus: addToPlaylist.error.status,
+      errorMessage: addToPlaylist.error.message,
       removedTracks: removedTracks,
       tracks: addedTracks,
       watchlist: watchlist

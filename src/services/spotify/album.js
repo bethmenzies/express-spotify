@@ -1,4 +1,4 @@
-const { call_spotify } = require("../controllers/spotifyController");
+const { call_spotify } = require('./common')
 
 const get_albums_by_artist = async (artistId, limit, offset) => {
   const options = {
