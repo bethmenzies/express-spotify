@@ -1,5 +1,5 @@
 const Track = require("../models/track");
-const { call_spotify } = require("./spotifyController")
+const { call_add_tracks_to_playlist, get_playlists } = require('../services/spotifyService')
 
 const chunkArray = (array, chunkSize) => {
   const numberOfChunks = Math.ceil(array.length / chunkSize)
@@ -8,19 +8,6 @@ const chunkArray = (array, chunkSize) => {
     .map((value, index) => {
       return array.slice(index * chunkSize, (index + 1) * chunkSize)
     })
-}
-
-const get_playlists = async (limit, offset) => {
-  const options = {
-    hostname: 'api.spotify.com',
-    path: `/v1/me/playlists?limit=${limit}&offset=${offset}`,
-    method: 'GET',
-    headers: {
-        Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
-    },
-    json: true
-  }
-  return await call_spotify(options);
 }
 
 const find_playlist = async (playlistName) => {
@@ -47,72 +34,6 @@ const find_playlist = async (playlistName) => {
   } else {
     return matchingPlaylist[0].id
   }
-}
-
-const create_playlist = async (playlistName) => {
-  let playlist
-  if (playlistName !== undefined) {
-    playlist = playlistName
-  } else {
-    playlist = "Latest Releases"
-  }
-  const body = JSON.stringify({
-    'name' : `${playlist} - ${Date.now()}`
-  });
-
-  const options = {
-    hostname: 'api.spotify.com',
-    path: `/v1/me/playlists`,
-    method: 'POST',
-    headers: {
-        Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
-    },
-    json: true
-  }
-  return await call_spotify(options, body);
-}
-
-const remove_tracks = async (tracks, playlistId) => {
-  return new Promise(async (resolve) => {
-    var uriObjects = []
-    var allResponses = true
-    var error = ""
-    for (let i = 0; i < tracks.length; i++) {
-      const uriObject = {
-        uri: tracks[i].uri
-      }
-      uriObjects.push(uriObject)
-    }
-    const allBodies = chunkArray(uriObjects, 100)
-
-    for (let i = 0; i < allBodies.length; i++) {
-      if (error.error) {
-        break
-      }
-      const body = JSON.stringify({
-        "items": allBodies[i]
-      })
-
-      const options = {
-        hostname: 'api.spotify.com',
-        path: `/v1/playlists/${playlistId}/items`,
-        method: 'DELETE',
-        headers: {
-            Authorization: 'Bearer ' + process.env.ACCESS_TOKEN,
-            "Transfer-Encoding": "chunked"
-        },
-        json: true
-      }
-
-      let response = await call_spotify(options, body);
-      if (response.error) {
-        allResponses = false
-        error = response
-        break
-      }
-    }
-    return resolve({allResponses: allResponses, error: error})
-  })
 }
 
 const add_tracks_to_artist_playlists = async (tracks) => {
@@ -228,41 +149,19 @@ const add_tracks_from_db = async (playlistId, watchlist) => {
   })
 }
 
-const add_tracks = async (playlistId, tracks) => {
-  return new Promise(async (resolve) => {
-    let allSuccess = true
-    var error = ""
-    for (let i = 0; i < tracks.length; i++) {
-      if (error.error) {
-        break
-      }
-      const body = JSON.stringify({
-        "uris" : [tracks[i].uri],
-        "position": tracks[i].playlist_position
-      })
+const addTracksToPlaylist = async (playlistId, tracks) => {
+  for (const track of tracks) {
+    const body = JSON.stringify({
+      "uris" : [track.uri],
+      "position": track.playlist_position
+    })
 
-      let result = await call_add_tracks_to_playlist(playlistId, body)
-      if (result.error) {
-        allSuccess = false
-        error = result
-        break
-      }
+    let result = await call_add_tracks_to_playlist(playlistId, body)
+    if (result.error) {
+      return result
     }
-    return resolve({allSuccess: allSuccess, error: error})
-  })
-}
-
-const call_add_tracks_to_playlist = async (playlistId, body) => {
-  const options = {
-    hostname: 'api.spotify.com',
-    path: `/v1/playlists/${playlistId}/items`,
-    method: 'POST',
-    headers: {
-        Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
-    },
-    json: true
   }
-  return await call_spotify(options, body);
+  return { success: true }
 }
 
-module.exports = { add_tracks, add_tracks_from_db, remove_tracks, create_playlist, add_tracks_no_playlist_position, add_tracks_to_artist_playlists, add_included_tracks }
+module.exports = { add_tracks_from_db, add_tracks_no_playlist_position, add_tracks_to_artist_playlists, add_included_tracks, addTracksToPlaylist }

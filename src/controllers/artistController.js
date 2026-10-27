@@ -2,9 +2,9 @@ const Artist = require("../models/artist");
 const Track = require("../models/track");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-const { call_spotify } = require("./spotifyController");
-const { remove_tracks, add_tracks_no_playlist_position, add_included_tracks } = require("./playlistController");
+const { add_included_tracks } = require("./playlistController");
 const { runForArtist } = require("./runController")
+const { remove_tracks, get_spotify_id_for_artist } = require('../services/spotifyService')
 
 const run_for_artist_get = asyncHandler(async (req, res, next) => {
   const artist = await Artist.findById(req.params.id).exec();
@@ -267,23 +267,6 @@ const artist_list = asyncHandler(async (req, res, next) => {
       watchlist: watchlist 
   });
 });
-
-const get_spotify_id_for_artist = async (artistName) => {
-  let path = `/v1/search?q=${artistName}&type=artist`;
-  let escapedPath = encodeURI(path);
-  
-  const options = {
-    hostname: 'api.spotify.com',
-    path: escapedPath,
-    method: 'GET',
-    headers: {
-      Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
-    },
-    json: true
-  };
-
-  return await call_spotify(options);
-}
 
 const get_spotify_ids = async (watchlist) => {
   const allArtists = await Artist.find({ watchlist: watchlist }, "name spotify_id").sort({ name: 1 }).exec();

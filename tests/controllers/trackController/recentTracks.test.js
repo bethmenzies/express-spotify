@@ -1,12 +1,12 @@
 const { recentTracks, getAlbumTracks, isTrackArtist, filterTracks, setAlbumOnTracks } = require('../../../src/controllers/trackController');
-const { get_tracks_by_album } = require('../../../src/services/trackService');
+const { get_tracks_by_album } = require('../../../src/services/spotifyService');
 const Track = require('../../../src/models/track')
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
 
 let mongoServer;
 
-jest.mock('../../../src/services/trackService', () => {
+jest.mock('../../../src/services/spotifyService', () => {
   return {
     get_tracks_by_album: jest.fn()
   };

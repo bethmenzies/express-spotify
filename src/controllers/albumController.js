@@ -1,4 +1,4 @@
-const { get_albums_by_artist } = require("../services/albumService");
+const { get_albums_by_artist } = require("../services/spotifyService");
 const { findArtistsByWatchlist } = require("../db/artists");
 const { getOldDate } = require("../utils/dateUtils");
 

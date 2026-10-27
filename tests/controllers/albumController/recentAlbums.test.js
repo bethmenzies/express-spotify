@@ -1,7 +1,7 @@
 const { recentAlbums, getArtistsAlbums, filterAlbumsByDate, setAlbumsWithRelatedArtists, sortAlbumsByDate, deduplicateAlbums } = require("../../../src/controllers/albumController");
-const { get_albums_by_artist } = require("../../../src/services/albumService");
+const { get_albums_by_artist } = require("../../../src/services/spotifyService");
 
-jest.mock('../../../src/services/albumService', () => {
+jest.mock('../../../src/services/spotifyService', () => {
   return {
     get_albums_by_artist: jest.fn()
   };

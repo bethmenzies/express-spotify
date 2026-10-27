@@ -1,7 +1,6 @@
-const { remove_tracks } = require("../controllers/playlistController");
+const { remove_tracks } = require("../services/spotifyService");
 const { getOldDate } = require("../utils/dateUtils");
 const { findTracksLteDate, deleteTracksLteDate } = require("../db/tracks");
-const { call_spotify } = require("../controllers/spotifyController")
 const { findTrackByUri, updateTrackPlaylistPosition, saveNewTrack } = require("../db/tracks");
 
 const removeTracksFromDB = async (watchlist) => {
@@ -41,17 +40,4 @@ const updateTracksInDB = async (tracks, watchlist) => {
   return addedTracks
 }
 
-const get_tracks_by_album = async (albumId, limit, offset) => {
-  const options = {
-    hostname: 'api.spotify.com',
-    path: `/v1/albums/${albumId}/tracks?limit=${limit}&offset=${offset}`,
-    method: 'GET',
-    headers: {
-        Authorization: 'Bearer ' + process.env.ACCESS_TOKEN
-    },
-    json: true
-  }
-  return await call_spotify(options);
-}
-
-module.exports = { removeTracksFromDB, removeTracksFromPlaylist, updateTracksInDB, get_tracks_by_album }
+module.exports = { removeTracksFromDB, removeTracksFromPlaylist, updateTracksInDB }
