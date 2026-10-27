@@ -12,7 +12,9 @@ const returnValues = require('../resources/returnValues')
 let mongoServer;
 
 jest.mock('../../src/services/trackService', () => {
+  const originalModule = jest.requireActual('../../src/services/trackService')
   return {
+    ...originalModule,
     removeTracksFromDB: jest.fn(),
     removeTracksFromPlaylist: jest.fn()
   }

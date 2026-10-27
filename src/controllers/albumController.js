@@ -44,10 +44,7 @@ const recentAlbums = async (watchlist) => {
       break
     }
     const albumsResponse = await getArtistsAlbums(artist)
-    if (albumsResponse.error.error) {
-      error = albumsResponse.error
-      break
-    }
+    error = albumsResponse.error
     const filteredAlbums = filterAlbumsByDate(albumsResponse.albums)
     const artistAlbums = setAlbumsWithRelatedArtists(filteredAlbums, artist.name, artist.spotify_id, artist.watchlist, '', '')
     albums.push(...artistAlbums)
@@ -98,8 +95,8 @@ const getArtistsAlbums = async (artist) => {
 const filterAlbumsByDate = (albums) => {
   const date = getOldDate()
   return albums
-    .filter(album => { return album.release_date > date })
-    .filter(album => !album.artists.map(artist => artist.name.toLowerCase()).includes("Various Artists".toLowerCase()))
+    .filter((album) => { return album.release_date > date })
+    .filter((album) => !album.artists.map(artist => artist.name.toLowerCase()).includes("Various Artists".toLowerCase()))
 }
 
 const setAlbumsWithRelatedArtists = (albums, artistName, artistSpotifyId, artistWatchlist, relatedArtistName, relatedArtistSpotifyId) => {

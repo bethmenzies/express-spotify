@@ -29,8 +29,8 @@ const sixth = { total: 2, items: [ { release_date: '2026-01-01', artists: [{ nam
 const seventh = { total: 2, items: [ { release_date: '2026-01-01', artists: [{ name: "Artist 2" }], uri: 'album7' } ] }
 const eighth = { total: 2, items: [ { release_date: '2026-01-01', artists: [{ name: "Artist 2" }], uri: 'album7' }, { release_date: '2026-01-01', artists: [{ name: "Artist 2" }], uri: 'album8' } ] }
 
-const firstWithIteration = { total: 75, items: [ { uri: 'album1', artists: [{ name: "Artist 1" }] } ] }
-const secondWithIteration = { total: 75, items: [ { uri: 'album1', artists: [{ name: "Artist 1" }] }, { uri: 'album2', artists: [{ name: "Artist 1" }] } ] }
+const firstWithIteration = { total: 75, items: [ { uri: 'album1', artists: [{ name: "Artist 1" }], release_date: '2026-01-01' } ] }
+const secondWithIteration = { total: 75, items: [ { uri: 'album1', artists: [{ name: "Artist 1" }], release_date: '2026-01-01' }, { uri: 'album2', artists: [{ name: "Artist 1" }], release_date: '2026-01-01' } ] }
 const thirdWithIteration = { total: 75, items: [ { uri: 'album3', artists: [{ name: "Artist 1" }] }, { uri: 'album4', artists: [{ name: "Artist 1" }] } ] }
 
 const artist1 = { name: "Artist 1", spotify_id: "artist1", watchlist: false, related_artists: [{ name: "Related Artist 1", spotify_id: "related1" }, { name: "Related Artist 2", spotify_id: "related2" }] }
@@ -178,7 +178,7 @@ describe('get albums', () => {
       expect(albums.albums.length).toBe(6)
       expect(albums.error).toBeDefined();
     })
-    it("should return an error if sixth get_albums_by_artist fails", async () => {
+    it("should return an error if eighth get_albums_by_artist fails", async () => {
       get_albums_by_artist
         .mockResolvedValueOnce(first)
         .mockResolvedValueOnce(second)
@@ -191,6 +191,23 @@ describe('get albums', () => {
       const albums = await recentAlbums(false);
       expect(albums.albums.length).toBe(6)
       expect(albums.error).toBeDefined();
+    })
+    it('should return album and error if error occurs in later iteration', async () => {
+      get_albums_by_artist
+        .mockResolvedValueOnce(firstWithIteration)
+        .mockResolvedValueOnce(secondWithIteration)
+        .mockResolvedValueOnce({ error: 'API error' })
+
+      const albumsResponse = await recentAlbums(false)
+
+      expect(albumsResponse).toHaveProperty('albums')
+      expect(Array.isArray(albumsResponse.albums)).toBe(true)
+      expect(albumsResponse.albums.length).toBe(2)
+      expect(albumsResponse.albums[0].uri).toBe('album1')
+      expect(albumsResponse.albums[1].uri).toBe('album2')
+      expect(albumsResponse).toHaveProperty('error')
+      expect(albumsResponse.error).toHaveProperty('error')
+      expect(albumsResponse.error.error).toBe('API error')
     })
   })
   describe('getArtistsAlbums', () => {

@@ -2,6 +2,7 @@ const { remove_tracks } = require("../controllers/playlistController");
 const { getOldDate } = require("../utils/dateUtils");
 const { findTracksLteDate, deleteTracksLteDate } = require("../db/tracks");
 const { call_spotify } = require("../controllers/spotifyController")
+const { findTrackByUri, updateTrackPlaylistPosition, saveNewTrack } = require("../db/tracks");
 
 const removeTracksFromDB = async (watchlist) => {
   const date = getOldDate()
@@ -18,6 +19,28 @@ const removeTracksFromPlaylist = async (tracks, playlistId) => {
   return await remove_tracks(tracks, playlistId);
 }
 
+const updateTracksInDB = async (tracks, watchlist) => {
+  playlistPosition = 0
+  addedTracks = []
+  for (const track of tracks) {
+    const existingTracks = await findTrackByUri(track.uri, track.album.artist.name, watchlist)
+
+    if (existingTracks.length > 0) {
+      const existingTrack = existingTracks[0]
+      if (existingTrack.to_include) {
+        await updateTrackPlaylistPosition(existingTrack._id, playlistPosition)
+        playlistPosition++
+      }
+    } else {
+      const newTrack = await saveNewTrack(track, watchlist)
+      const newTrackWithPlaylistPosition = await updateTrackPlaylistPosition(newTrack._id, playlistPosition)
+      playlistPosition++
+      addedTracks.push(newTrackWithPlaylistPosition)
+    }
+  }
+  return addedTracks
+}
+
 const get_tracks_by_album = async (albumId, limit, offset) => {
   const options = {
     hostname: 'api.spotify.com',
@@ -31,4 +54,4 @@ const get_tracks_by_album = async (albumId, limit, offset) => {
   return await call_spotify(options);
 }
 
-module.exports = { removeTracksFromDB, removeTracksFromPlaylist, get_tracks_by_album }
+module.exports = { removeTracksFromDB, removeTracksFromPlaylist, updateTracksInDB, get_tracks_by_album }

@@ -2,7 +2,6 @@ const Track = require("../models/track");
 const { remove_tracks } = require("./playlistController")
 const asyncHandler = require("express-async-handler");
 const { get_tracks_by_album } = require('../services/trackService')
-const { findTrackByUri, updateTrackPlaylistPosition } = require('../db/tracks')
 
 const artist_tracks_by_album = async (albums, artistNames) => {
   return new Promise(async (resolve) => {
@@ -84,11 +83,11 @@ const recentTracks = async (albums) => {
   var error = ""
 
   for (const album of albums) {
-    const tracksResponse = await getAlbumTracks(album)
-    if (tracksResponse.error.error) {
-      error = tracksResponse.error
+    if (error.error) {
       break
     }
+    const tracksResponse = await getAlbumTracks(album)
+    error = tracksResponse.error
     const filteredTracks = filterTracks(tracksResponse.tracks, album)
     const tracksWithAlbumArtists = setAlbumOnTracks(filteredTracks, album)
     tracks.push(...tracksWithAlbumArtists)
@@ -118,7 +117,7 @@ const getAlbumTracks = async (album) => {
 }
 
 const filterTracks = (tracks, album) => {
-  return tracks.filter(track => { isTrackArtist(track, album) })
+  return tracks.filter((track) => isTrackArtist(track, album))
 }
 
 const isTrackArtist = (track, album) => {

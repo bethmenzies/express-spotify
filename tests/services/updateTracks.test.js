@@ -1,4 +1,4 @@
-const { updateTracksInDB } = require('../../src/services/updateTracksInDB')
+const { updateTracksInDB } = require('../../src/services/trackService')
 const Track = require('../../src/models/track')
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
@@ -39,7 +39,7 @@ describe('update tracks in DB', () => {
       expect(tracks.length).toBe(1)
     })
     it('should add new track when tracks in db', async () => {
-      Track.insertMany([
+      await Track.insertMany([
         track1
       ])
       const addedTracks = await updateTracksInDB([track2], false)
@@ -49,7 +49,7 @@ describe('update tracks in DB', () => {
       expect(tracks.length).toBe(2)
     })
     it('should not add new tracks when the track exists in db', async () => {
-      Track.insertMany([
+      await Track.insertMany([
         track1
       ])
       const addedTracks = await updateTracksInDB([track1], false)
@@ -59,7 +59,7 @@ describe('update tracks in DB', () => {
       expect(tracks.length).toBe(1)
     })
     it('should update playlist_position on existing track', async () => {
-      Track.insertMany([
+      await Track.insertMany([
         track1
       ])
       const addedTracks = await updateTracksInDB([track2, track1], false)
@@ -72,7 +72,7 @@ describe('update tracks in DB', () => {
       expect(tracks[1].playlist_position).toBe(0)
     })
     it('should not update playlist_position when not to_include', async () => {
-      Track.insertMany([
+      await Track.insertMany([
         { uri: 'track1', name: 'Track 1', external_urls: { spotify: 'track1' }, album: { name: 'Album 1', artist: { name: 'Artist 1' }, relatedArtist: { name: '' } }, watchlist: false, to_include: false, playlist_position: -1 }
       ])
       const addedTracks = await updateTracksInDB([track2, track1], false)
@@ -83,7 +83,7 @@ describe('update tracks in DB', () => {
       expect(tracks[0].playlist_position).toBe(-1)
     })
     it('should add as new track if not in watchlist', async () => {
-      Track.insertMany([
+      await Track.insertMany([
         { uri: 'track1', name: 'Track 1', external_urls: { spotify: 'track1' }, album: { name: 'Album 1', artist: { name: 'Artist 1' }, relatedArtist: { name: '' } }, watchlist: true, to_include: true, playlist_position: 100 }
       ])
       const addedTracks = await updateTracksInDB([track1], false)
@@ -96,7 +96,7 @@ describe('update tracks in DB', () => {
       expect(tracks[0].playlist_position).toBe(100)
     })
     it('should add as new track if not the same artist', async () => {
-      Track.insertMany([
+      await Track.insertMany([
         { uri: 'track1', name: 'Track 1', external_urls: { spotify: 'track1' }, album: { name: 'Album 1', artist: { name: 'Related Artist 1' }, relatedArtist: { name: '' } }, watchlist: false, to_include: true, playlist_position: 100 }
       ])
       const addedTracks = await updateTracksInDB([track1], false)
