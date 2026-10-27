@@ -9,6 +9,10 @@ const call_spotify = async (options, body) => {
       response.on('end', function () {
         try {
           parsedBody = JSON.parse(responseBody + '');
+          if (response.statusCode === 429) {
+            let minutes = Math.ceil(response.headers['retry-after'] / 60)
+            parsedBody.error.message = `${parsedBody.error.message}, please try again after ${minutes} minutes`
+          }
           return resolve(parsedBody);
         } catch (e) {
           console.error(e)

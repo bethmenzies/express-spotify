@@ -19,7 +19,10 @@ const theWeightDB = {
       name: 'Arm\'s Length',
       spotify_id: '1KXSj6uiC8Wtl2wCckVmAD',
       watchlist: false,
-      related_artists: []
+      related_artist: {
+        name: "",
+        spotify_id: ""
+      }
     },
   },
   track_number: 4,
@@ -147,7 +150,10 @@ const startTodayToIncludeDB = {
       name: 'Fall Out Boy',
       spotify_id: '4UXqAaa6dQYAk18Lv7PEgX',
       watchlist: false,
-      related_artists: []
+      related_artist: {
+        name: "",
+        spotify_id: ""
+      }
     },
   },
   track_number: 5,
@@ -170,7 +176,10 @@ const startTodayNotIncludeDB = {
       name: 'Fall Out Boy',
       spotify_id: '4UXqAaa6dQYAk18Lv7PEgX',
       watchlist: false,
-      related_artists: []
+      related_artist: {
+        name: "",
+        spotify_id: ""
+      }
     },
   },
   track_number: 1,
@@ -193,7 +202,10 @@ const particlePhysicsDB = {
       name: 'Fall Out Boy',
       spotify_id: '4UXqAaa6dQYAk18Lv7PEgX',
       watchlist: false,
-      related_artists: []
+      related_artist: {
+        name: "Patrick Stump",
+        spotify_id: "0wsdUS0EJ7zHgti2nxTVWR"
+      }
     },
   },
   track_number: 3,
@@ -585,7 +597,10 @@ const mirtazapineDB = {
       name: 'Paramore',
       spotify_id: '74XFHRwlV6OrjEM0A2NCMF',
       watchlist: false,
-      related_artists: []
+      related_artist: {
+        name: "Hayley Williams",
+        spotify_id: "6Rx1JKzBrSzoKQtmbVmBnM"
+      }
     },
   },
   track_number: 5,
