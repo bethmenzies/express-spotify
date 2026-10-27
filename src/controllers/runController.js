@@ -1,4 +1,4 @@
-const { add_tracks_no_playlist_position, add_tracks_to_artist_playlists } = require("./playlistController.js")
+const { add_tracks_no_playlist_position } = require("./playlistController.js")
 const asyncHandler = require("express-async-handler");
 const { albums_for_artists } = require('./albumController.js');
 const { artist_tracks_by_album } = require('./trackController.js');
