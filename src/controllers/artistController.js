@@ -2,10 +2,10 @@ const Artist = require("../services/db/models/artist");
 const Track = require("../services/db/models/track");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-const { add_included_tracks } = require("./playlistController");
+const { addAllTracksToPlaylist } = require("./playlistController");
 const { runForArtist } = require("./runController")
-const { remove_tracks } = require('../services/spotify/playlist') 
-const { get_spotify_id_for_artist } = require('../services/spotify/artist')
+const { get_spotify_id_for_artist } = require('../services/spotify/artist');
+const { removeTracksFromPlaylist } = require("../services/trackService");
 
 const run_for_artist_get = asyncHandler(async (req, res, next) => {
   const artist = await Artist.findById(req.params.id).exec();
@@ -61,7 +61,7 @@ const artist_swap_playlist_post = asyncHandler(async (req, res, next) => {
   let current_watchlist = req.query.watchlist === 'true'
   let swapped_watchlist = !current_watchlist
   let artist = await Artist.findById(req.body.artistid).exec();
-  let tracks = await Track.find({ 'album.artist.name': artist.name }).exec();
+  let allTracksToInclude = await Track.find({ 'album.artist.name': artist.name, to_include: true }).exec();
   let current_playlistId
   let swapped_playlistId
   if (current_watchlist) {
@@ -73,7 +73,7 @@ const artist_swap_playlist_post = asyncHandler(async (req, res, next) => {
   }
 
   if (current_playlistId && swapped_playlistId) {
-    let isDeleted = await remove_tracks(tracks, current_playlistId);
+    let isDeleted = await removeTracksFromPlaylist(allTracksToInclude, current_playlistId);
     if (!isDeleted.allResponses) {
       res.render("error", {
         title: "Error!",
@@ -82,7 +82,8 @@ const artist_swap_playlist_post = asyncHandler(async (req, res, next) => {
         errorMessage: isDeleted.error.error.message,
       });
     }
-    let isAdded = await add_included_tracks(swapped_playlistId, tracks)
+    // TODO: add to right place in playlist
+    let isAdded = await addAllTracksToPlaylist(swapped_playlistId, allTracksToInclude)
     if (!isAdded.allSuccess) {
       res.render("error", {
         title: "Error!",
@@ -116,7 +117,7 @@ const artist_delete_post = asyncHandler(async (req, res, next) => {
   }
 
   if (playlistId) {
-    let isDeleted = await remove_tracks(tracks, playlistId)
+    let isDeleted = await removeTracksFromPlaylist(tracks, playlistId)
     if (isDeleted.allResponses) {
       await Artist.findByIdAndDelete(req.body.artistid).exec();
       await Track.deleteMany({ 'album.artist.name': artist.name }).exec();

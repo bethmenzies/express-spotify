@@ -1,6 +1,6 @@
 const { runForLatestTracks } = require('../../src/services/runService')
 const { removeTracksFromDB, removeTracksFromPlaylist } = require('../../src/services/trackService')
-const { addTracksToPlaylist, add_tracks_to_artist_playlists } = require('../../src/controllers/playlistController')
+const { addTracksOneByOneToPlaylist, addTracksToArtistPlaylists } = require('../../src/controllers/playlistController')
 const { recentAlbums } = require('../../src/controllers/albumController')
 const { recentTracks } = require('../../src/controllers/trackController')
 const Artist = require('../../src/services/db/models/artist')
@@ -41,8 +41,8 @@ jest.mock('../../src/controllers/trackController', () => {
 
 jest.mock('../../src/controllers/playlistController', () => {
   return {
-    addTracksToPlaylist: jest.fn(),
-    add_tracks_to_artist_playlists: jest.fn()
+    addTracksOneByOneToPlaylist: jest.fn(),
+    addTracksToArtistPlaylists: jest.fn()
 
   }
 })
@@ -66,8 +66,8 @@ describe('runForLatestTracks', () => {
     create_playlist.mockClear()
     recentAlbums.mockClear()
     recentTracks.mockClear()
-    addTracksToPlaylist.mockClear()
-    add_tracks_to_artist_playlists.mockClear()
+    addTracksOneByOneToPlaylist.mockClear()
+    addTracksToArtistPlaylists.mockClear()
   })
   afterAll(async () => {
     await mongoose.disconnect();
@@ -79,8 +79,8 @@ describe('runForLatestTracks', () => {
     create_playlist.mockResolvedValue({ success: true })
     recentAlbums.mockReturnValue({ albums: [returnValues.theresAWholeWorldOutThere, returnValues.sameOldWastedWonderfulWorldDeluxe, returnValues.sameOldWastedWonderfulWorld, returnValues.fromUnderTheCorkTree, returnValues.startToday, returnValues.egoDeathAtABacheloretteParty], error: '' })
     recentTracks.mockReturnValue({ tracks: [returnValues.theWeight, returnValues.startTodayNotInclude, returnValues.startTodayToInclude, returnValues.particlePhysics, returnValues.particlePhysicsNew, returnValues.mirtazapine], error: ''})
-    addTracksToPlaylist.mockResolvedValue({ allSuccess: true, error: '' })
-    add_tracks_to_artist_playlists.mockResolvedValue({ allSuccess: true, error: '' })
+    addTracksOneByOneToPlaylist.mockResolvedValue({ success: true })
+    addTracksToArtistPlaylists.mockResolvedValue({ success: true })
 
     const toRender = await runForLatestTracks(false)
     expect(toRender.tracks.length).toBe(1)

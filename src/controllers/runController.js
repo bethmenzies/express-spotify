@@ -1,4 +1,4 @@
-const { add_tracks_no_playlist_position } = require("./playlistController.js")
+const { addAllTracksToPlaylist } = require("./playlistController.js")
 const asyncHandler = require("express-async-handler");
 const { albums_for_artists } = require('./albumController.js');
 const { artist_tracks_by_album } = require('./trackController.js');
@@ -35,7 +35,7 @@ const runForArtist = async (artist, req, res, next) => {
       resolve("Something went wrong when creating the playlist. Try again.")
     }
     let playlistId = playlistBody.id
-    let playlist = await add_tracks_no_playlist_position(playlistId, tracks.tracks);
+    let playlist = await addAllTracksToPlaylist(playlistId, tracks.tracks);
     if (!playlist.allSuccess) {
       resolve("Something went wrong when adding tracks to playlist. Try again.")
     } else {

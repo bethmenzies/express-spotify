@@ -1,7 +1,7 @@
 const Track = require("../services/db/models/track");
-const { remove_tracks } = require("../services/spotify/playlist")
 const asyncHandler = require("express-async-handler");
-const { get_tracks_by_album } = require('../services/spotify/track')
+const { get_tracks_by_album } = require('../services/spotify/track');
+const { removeTracksFromPlaylist } = require("../services/trackService");
 
 const artist_tracks_by_album = async (albums, artistNames) => {
   return new Promise(async (resolve) => {
@@ -172,7 +172,7 @@ const track_delete_post = asyncHandler(async (req, res, next) => {
     playlistId = process.env.PLAYLIST_ID
   }
   if (playlistId) {
-    let isDeleted = await remove_tracks([track], playlistId)
+    let isDeleted = await removeTracksFromPlaylist([track], playlistId)
     if (isDeleted.allResponses) {
       await Track.findByIdAndUpdate(req.body.trackid, { to_include: false, playlist_position: -1 }).exec();
       res.redirect("/tracks?watchlist=" + watchlist);

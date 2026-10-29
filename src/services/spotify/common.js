@@ -32,4 +32,4 @@ const call_spotify = async (options, body) => {
   });
 };
 
-module.exports = call_spotify
+module.exports = { call_spotify }

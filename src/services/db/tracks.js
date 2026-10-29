@@ -16,6 +16,10 @@ const updateTrackPlaylistPosition = async (id, playlistPosition) => {
   return await Track.findByIdAndUpdate(id, { playlist_position: playlistPosition }, { new: true }).exec();
 }
 
+const findAllTracksToInclude = async (watchlist, fields) => {
+  return await Track.find({ watchlist: watchlist, to_include: true }, fields).sort({ playlist_position: 1 }).exec();
+}
+
 const saveNewTrack = async (track, watchlist) => {
   const newTrack = new Track({
     name: track.name.substring(0, 100),
@@ -44,4 +48,4 @@ const saveNewTrack = async (track, watchlist) => {
   return newTrack
 }
 
-module.exports = { findTracksLteDate, deleteTracksLteDate, findTrackByUri, updateTrackPlaylistPosition, saveNewTrack }
+module.exports = { findTracksLteDate, deleteTracksLteDate, findTrackByUri, updateTrackPlaylistPosition, findAllTracksToInclude, saveNewTrack }

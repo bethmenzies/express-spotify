@@ -36,7 +36,7 @@ const get_playlists = async (limit, offset) => {
   return await call_spotify(options);
 }
 
-const call_add_tracks_to_playlist = async (playlistId, body) => {
+const call_add_tracks_to_playlist = async (playlistId, uris, playlistPosition) => {
   const options = {
     hostname: 'api.spotify.com',
     path: `/v1/playlists/${playlistId}/items`,
@@ -46,6 +46,10 @@ const call_add_tracks_to_playlist = async (playlistId, body) => {
     },
     json: true
   }
+  const body = JSON.stringify({
+    "uris": uris,
+    "position": playlistPosition
+  })
   return await call_spotify(options, body);
 }
 

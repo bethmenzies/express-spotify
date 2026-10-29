@@ -1,4 +1,4 @@
-const { addTracksToPlaylist, add_tracks_to_artist_playlists } = require("../controllers/playlistController.js")
+const { addTracksOneByOneToPlaylist, addTracksToArtistPlaylists } = require("../controllers/playlistController.js")
 const { recentAlbums } = require('../controllers/albumController.js');
 const { recentTracks } = require('../controllers/trackController.js');
 const { removeTracksFromDB, removeTracksFromPlaylist, updateTracksInDB } = require('./trackService.js');
@@ -90,7 +90,7 @@ const runForLatestTracks = async (watchlist) => {
     }
   }
   
-  let addToPlaylist = await addTracksToPlaylist(playlistId, addedTracks);
+  let addToPlaylist = await addTracksOneByOneToPlaylist(playlistId, addedTracks);
   if (addToPlaylist.error) {
     return {
       title: "Error!",
@@ -103,14 +103,14 @@ const runForLatestTracks = async (watchlist) => {
       watchlist: watchlist
     }
   } 
-  let artistPlaylists = await add_tracks_to_artist_playlists(addedTracks)
-  if (!artistPlaylists.allSuccess) {
+  let addToArtistPlaylists = await addTracksToArtistPlaylists(addedTracks)
+  if (addToArtistPlaylists.error) {
     return {
       title: "Error!",
       state: playlistState,
       error: "Something went wrong when adding tracks to artists playlist. You might want to do this manually.",
-      errorStatus: artistPlaylists.error.error.status,
-      errorMessage: artistPlaylists.error.error.message,
+      errorStatus: addToArtistPlaylists.error.status,
+      errorMessage: addToArtistPlaylists.error.message,
       removedTracks: removedTracks,
       tracks: addedTracks,
       watchlist: watchlist
