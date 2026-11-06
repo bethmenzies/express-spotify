@@ -1,15 +1,7 @@
 const { SPOTIFY_URI_LIMIT } = require('../utils/constants')
+const { chunkArray } = require('../utils/arrayUtils')
 const Track = require("../services/db/models/track");
 const { call_add_tracks_to_playlist, get_playlists } = require('../services/spotify/playlist')
-
-const chunkArray = (array, chunkSize) => {
-  const numberOfChunks = Math.ceil(array.length / chunkSize)
-
-  return [...Array(numberOfChunks)]
-    .map((value, index) => {
-      return array.slice(index * chunkSize, (index + 1) * chunkSize)
-    })
-}
 
 const getAllPlaylists = async () => {
   return new Promise(async (resolve) => {
