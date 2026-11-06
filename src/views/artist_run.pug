@@ -2,11 +2,10 @@ extends layout
 
 block content
 
-  h1 #{title}: #{artist.name}
+  h1 #{title} - #{artistName}
 
-  p Submit to create the playlist for this artist
-
-  form(method='POST')
-    div.form-group
-
-    button.btn.btn-primary(type='submit') Run
+  if error !== null
+    p= error
+    p Error: #{errorStatus} - #{errorMessage}
+  else
+    p Playlist created.

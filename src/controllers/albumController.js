@@ -1,36 +1,7 @@
 const { get_albums_by_artist } = require("../services/spotify/album");
 const { findArtistsByWatchlist } = require("../services/db/artists");
 const { getOldDate } = require("../utils/dateUtils");
-
-const albums_for_artists = async (artistAndSpotifyIds) => {
-  let albums = []
-  var error = ""
-  for (let i = 0; i < artistAndSpotifyIds.length; i++) {
-    if (error.error) {
-      break
-    }
-    let body = await get_albums_by_artist(artistAndSpotifyIds[i].spotify_id, 1, 0)
-    if (body.error) {
-      error = body
-      break
-    }
-    let total = body.total
-    let iterations = Math.floor(total/50)
-    for (let j = 0; j <= iterations; j++) {
-      let body = await get_albums_by_artist(artistAndSpotifyIds[i].spotify_id, 50, j*50)
-      if (body.error) {
-        error = body
-        break
-      }
-      albums.push(...body.items)
-    }
-  }
-  albums = albums
-  .filter(album => !album.artists.map(artist => artist.name.toLowerCase()).includes("Various Artists".toLowerCase()))
-  .sort((a,b) => (a.release_date > b.release_date) ? 1 : ((b.release_date > a.release_date) ? -1 : 0))
-
-  return { albums: albums, error: error }
-}
+const { VARIOUS_ARTISTS } = require("../utils/constants")
 
 const recentAlbums = async (watchlist) => {
   var recentAlbums = []
@@ -45,7 +16,8 @@ const recentAlbums = async (watchlist) => {
     }
     const albumsResponse = await getArtistsAlbums(artist)
     error = albumsResponse.error
-    const filteredAlbums = filterAlbumsByDate(albumsResponse.albums)
+    const filteredAlbumsByDate = filterAlbumsByDate(albumsResponse.albums)
+    const filteredAlbums = filterAlbums(filteredAlbumsByDate)
     const artistAlbums = setAlbumsWithRelatedArtists(filteredAlbums, artist.name, artist.spotify_id, artist.watchlist, '', '')
     albums.push(...artistAlbums)
 
@@ -59,7 +31,8 @@ const recentAlbums = async (watchlist) => {
           error = albumsResponse.error
           break
         }
-        const filteredAlbums = filterAlbumsByDate(albumsResponse.albums)
+        const filteredAlbumsByDate = filterAlbumsByDate(albumsResponse.albums)
+        const filteredAlbums = filterAlbums(filteredAlbumsByDate)
         const relatedArtistAlbums = setAlbumsWithRelatedArtists(filteredAlbums, artist.name, artist.spotify_id, artist.watchlist, relatedArtist.name, relatedArtist.spotify_id)
         albums.push(...relatedArtistAlbums)
       }
@@ -69,6 +42,23 @@ const recentAlbums = async (watchlist) => {
     recentAlbums.push(...dedupedAlbums)
   }
   return { albums: recentAlbums, error: error }
+}
+
+const artistsAlbums = async (artists) => {
+  let albums = []
+  var error = ""
+  for (const artist of artists) {
+    if (error.error) {
+      break
+    }
+    const albumsResponse = await getArtistsAlbums(artist)
+    error = albumsResponse.error
+    const filteredAlbums = filterAlbums(albumsResponse.albums)
+    albums.push(...filteredAlbums)
+  }
+  const sortedAlbums = sortAlbumsByDate(albums)
+  const dedupedAlbums = deduplicateAlbums(sortedAlbums)
+  return { albums: dedupedAlbums, error: error }
 }
 
 const getArtistsAlbums = async (artist) => {
@@ -94,9 +84,11 @@ const getArtistsAlbums = async (artist) => {
 
 const filterAlbumsByDate = (albums) => {
   const date = getOldDate()
-  return albums
-    .filter((album) => { return album.release_date > date })
-    .filter((album) => !album.artists.map(artist => artist.name.toLowerCase()).includes("Various Artists".toLowerCase()))
+  return albums.filter((album) => { return album.release_date > date })
+}
+
+const filterAlbums = (albums) => {
+  return albums.filter((album) => !album.artists.map(artist => artist.name.toLowerCase()).includes(VARIOUS_ARTISTS))
 }
 
 const setAlbumsWithRelatedArtists = (albums, artistName, artistSpotifyId, artistWatchlist, relatedArtistName, relatedArtistSpotifyId) => {
@@ -113,4 +105,4 @@ const deduplicateAlbums = (albums) => {
   return [...map.values()];
 }
 
-module.exports = { recentAlbums, albums_for_artists, getArtistsAlbums, filterAlbumsByDate, setAlbumsWithRelatedArtists, sortAlbumsByDate, deduplicateAlbums }
+module.exports = { recentAlbums, artistsAlbums, getArtistsAlbums, filterAlbumsByDate, filterAlbums, setAlbumsWithRelatedArtists, sortAlbumsByDate, deduplicateAlbums }

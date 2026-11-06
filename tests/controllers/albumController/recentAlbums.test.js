@@ -1,4 +1,4 @@
-const { recentAlbums, getArtistsAlbums, filterAlbumsByDate, setAlbumsWithRelatedArtists, sortAlbumsByDate, deduplicateAlbums } = require("../../../src/controllers/albumController");
+const { recentAlbums, getArtistsAlbums, filterAlbumsByDate, filterAlbums, setAlbumsWithRelatedArtists, sortAlbumsByDate, deduplicateAlbums } = require("../../../src/controllers/albumController");
 const { get_albums_by_artist } = require("../../../src/services/spotify/album");
 
 jest.mock('../../../src/services/spotify/album', () => {
@@ -314,29 +314,21 @@ describe('get albums', () => {
       const filteredAlbums = filterAlbumsByDate(albums)
       expect(filteredAlbums.length).toBe(0)
     })
+  })
+  describe('filterAlbums', () => {
     it('should filter Various Artists', () => {
       const albums = [
         { uri: 'album', artists: [{ name: 'Various Artists' }], release_date: '2026-01-01'}
       ]
-      const filteredAlbums = filterAlbumsByDate(albums)
+      const filteredAlbums = filterAlbums(albums)
       expect(filteredAlbums.length).toBe(0)
     })
     it('should filter when one artist is Various Artists', () => {
       const albums = [
         { uri: 'album', artists: [{ name: 'Artist1' }, { name: 'Artist2' }, { name: 'Various Artists' }], release_date: '2026-01-01' }
       ]
-      const filteredAlbums = filterAlbumsByDate(albums)
+      const filteredAlbums = filterAlbums(albums)
       expect(filteredAlbums.length).toBe(0)
-    })
-    it('should filter both date and various artists', () => {
-      const albums = [
-        { uri: 'album1', artists: [], release_date: '2024-01-01' },
-        { uri: 'album2', artists: [{ name: 'various artists' }], release_date: '2026-01-01' },
-        { uri: 'album3', artists: [], release_date: '2026-01-01' }
-      ]
-      const filteredAlbums = filterAlbumsByDate(albums)
-      expect(filteredAlbums.length).toBe(1)
-      expect(filteredAlbums[0].uri).toBe('album3')
     })
   })
   describe('setAlbumsWithRelatedArtists', () => {

@@ -7,24 +7,11 @@ const { runForArtist } = require("./runController")
 const { get_spotify_id_for_artist } = require('../services/spotify/artist');
 const { removeTracksFromPlaylist } = require("../services/trackService");
 
-const run_for_artist_get = asyncHandler(async (req, res, next) => {
+const run_for_artist = asyncHandler(async (req, res, next) => {
   const artist = await Artist.findById(req.params.id).exec();
-
-  if (artist === null) {
-    res.redirect("/artists")
-  }
-
-  res.render("artist_run", {
-    title: "Run for Artist",
-    artist: artist
-  })
-})
-
-const run_for_artist_post = asyncHandler(async (req, res, next) => {
-  const artist = await Artist.findById(req.params.id).exec();
-  let completedString = await runForArtist(artist)
-  return res.send(completedString)
-
+  const toRender = await runForArtist(artist)
+  res.render("artist_run", toRender)
+  return
 })
 
 const artist_delete_get = asyncHandler(async (req, res, next) => {
@@ -293,4 +280,4 @@ const get_spotify_ids = async (watchlist) => {
   }
 }
 
-module.exports = { run_for_artist_get, run_for_artist_post, artist_delete_get, artist_delete_post, artist_add_get, artist_add_post, artist_list, get_spotify_id_for_artist, get_spotify_ids, artist_edit_get, artist_edit_post, artist_swap_playlist_get, artist_swap_playlist_post }
+module.exports = { run_for_artist, artist_delete_get, artist_delete_post, artist_add_get, artist_add_post, artist_list, get_spotify_id_for_artist, get_spotify_ids, artist_edit_get, artist_edit_post, artist_swap_playlist_get, artist_swap_playlist_post }

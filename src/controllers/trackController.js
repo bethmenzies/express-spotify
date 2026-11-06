@@ -2,80 +2,54 @@ const Track = require("../services/db/models/track");
 const asyncHandler = require("express-async-handler");
 const { get_tracks_by_album } = require('../services/spotify/track');
 const { removeTracksFromPlaylist } = require("../services/trackService");
+const { increasePriority, decreasePriority } = require("../utils/constants")
 
-const artist_tracks_by_album = async (albums, artistNames) => {
-  return new Promise(async (resolve) => {
-    var tracks = []
-    var error = ""
-    for (let i = 0; i < albums.length; i++) {
-      if (error.error) {
-        break
-      }
-      let albumTracks = []
-      let body = await get_tracks_by_album(albums[i].id, 1, 0)
-      if (body.error) {
-        error = body
-        break
-      }
-      let total = body.total
-      let iterations = Math.floor(total/50)
-      for (let j = 0; j <= iterations; j++) {
-        let body = await get_tracks_by_album(albums[i].id, 50, j*50)
-        if (body.error) {
-          error = body
-          break
-        }
-        albumTracks.push(...body.items)
+const artistTracksByAlbum = async (albums, artistNames) => {
+  var tracks = []
+  var error = ""
+  for (const album of albums) {
+    if (error.error) {
+      break
+    }
+    const tracksResponse = await getAlbumTracks(album)
+    error = tracksResponse.error
+
+    for (const track of tracksResponse.tracks) {
+      if (!artistNames.some(el => track.artists.map(artist => artist.name.toLowerCase()).includes(el.toLowerCase()))) {
+        continue
       }
 
-      for (let j = 0; j < albumTracks.length; j++) {
-        let track = albumTracks[j]
+      let priority = 0
+      if (album.album_type === "album") {
+        priority++
+      }
+      if (album.album_type == "single") {
+        priority--
+      }
+      if (increasePriority.some(str => album.name.toLowerCase().includes(str))) {
+        priority++
+      }
+      if (decreasePriority.some(str => album.name.toLowerCase().includes(str))) {
+        priority--
+      }
+      track.priority = priority
 
-        if (!artistNames.some(el => track.artists.map(artist => artist.name.toLowerCase()).includes(el.toLowerCase()))) {
-          continue
-        }
+      let existingTrackIndex = tracks.findIndex(existingTrack => { 
+        return existingTrack.name.toLowerCase() === track.name.toLowerCase() &&
+        existingTrack.artists.length === track.artists.length &&
+        existingTrack.artists[0].name === track.artists[0].name &&
+        existingTrack.duration_ms === track.duration_ms
+      })
 
-        let priority = 0
-        if (albums[i].album_type === "album") {
-          priority++
-        }
-        if (albums[i].album_type == "single") {
-          priority--
-        }
-        if (albums[i].name.toLowerCase().includes("deluxe edition") || albums[i].name.toLowerCase().includes("special edition") || albums[i].name.toLowerCase().includes("extended version") || albums[i].name.toLowerCase().includes("deluxe")) {
-          priority++
-        }
-        if (albums[i].name.toLowerCase().includes("greatest hits")) {
-          priority--
-        }
-        if (albums[i].name.toLowerCase().includes("live in") || albums[i].name.toLowerCase().includes("live at") || albums[i].name.toLowerCase().includes("live from")) {
-          priority--
-        }
-        if (albums[i].name.toLowerCase().includes("anniversary")) {
-          priority--
-        }
-        if (albums[i].name.toLowerCase().includes("reimagined") || albums[i].name.toLowerCase().includes("reworked")) {
-          priority--
-        }
-        track.priority = priority
-
-        let existingTrackIndex = tracks.findIndex(existingTrack => {
-          return existingTrack.name.toLowerCase() === track.name.toLowerCase() &&
-          existingTrack.artists.length === track.artists.length &&
-          existingTrack.artists[0].name === track.artists[0].name &&
-          existingTrack.duration_ms === track.duration_ms
-        })
-
-        if (existingTrackIndex < 0) {
-          tracks.push(track)
-        } else if (tracks[existingTrackIndex].priority <= track.priority) {
-          tracks.splice(existingTrackIndex, 1)
-          tracks.push(track)
-        }
+      if (existingTrackIndex < 0) {
+        tracks.push(track)
+      } else if (tracks[existingTrackIndex].priority <= track.priority) {
+        tracks.splice(existingTrackIndex, 1)
+        tracks.push(track)
       }
     }
-    resolve({tracks: tracks, error: error})
-  })
+  }
+  return { tracks: tracks, error: error }
 }
 
 const recentTracks = async (albums) => { 
@@ -190,4 +164,4 @@ const track_delete_post = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { recentTracks, getAlbumTracks, isTrackArtist, filterTracks, setAlbumOnTracks, track_list, track_delete_get, track_delete_post, artist_tracks_by_album }
+module.exports = { recentTracks, getAlbumTracks, isTrackArtist, filterTracks, setAlbumOnTracks, track_list, track_delete_get, track_delete_post, artistTracksByAlbum }

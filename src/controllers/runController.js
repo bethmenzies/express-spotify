@@ -1,7 +1,7 @@
 const { addAllTracksToPlaylist } = require("./playlistController.js")
 const asyncHandler = require("express-async-handler");
-const { albums_for_artists } = require('./albumController.js');
-const { artist_tracks_by_album } = require('./trackController.js');
+const { artistsAlbums } = require('./albumController.js');
+const { artistTracksByAlbum } = require('./trackController.js');
 const { runForLatestTracks } = require("../services/runService.js")
 const { create_playlist } = require("../services/spotify/playlist.js")
 
@@ -12,36 +12,73 @@ const run = asyncHandler(async (req, res, next) => {
   return
 });
 
-const runForArtist = async (artist, req, res, next) => {
-  return new Promise(async (resolve) => {
-    let artistAndSpotifyIds = [{name: artist.name, spotify_id: artist.spotify_id}]
-    for (let i = 0; i < artist.related_artists.length; i++) {
-      artistAndSpotifyIds.push({name: artist.related_artists[i].name, spotify_id: artist.related_artists[i].spotify_id})
+const runForArtist = async (artist) => {
+  if (artist === null) {
+    return {
+      title: "Error!",
+      artistName: "N/A",
+      error: "No artist found",
+      errorStatus: null,
+      errorMessage: null,
     }
-    let albums = await albums_for_artists(artistAndSpotifyIds)
-    if (albums.error.error) {
-      return resolve("Something failed when getting recent albums. Please try again.")
+  }
+  let artists = [{ name: artist.name, spotify_id: artist.spotify_id }]
+  for (const relatedArtist of artist.related_artists) {
+    artists.push({ name: relatedArtist.name, spotify_id: relatedArtist.spotify_id })
+  }
+  let albumsResponse = await artistsAlbums(artists)
+  if (albumsResponse.error.error) {
+    return {
+      title: "Error!",
+      artistName: artist.name,
+      error: "Something failed when getting recent albums. Please try again.",
+      errorStatus: albumsResponse.error.error.status,
+      errorMessage: albumsResponse.error.error.message
     }
-    let artistNames = [artist.name]
-    for (let i = 0; i < artist.related_artists.length; i++) {
-      artistNames.push(artist.related_artists[i].name)
+  }
+  let artistNames = [artist.name]
+  for (const relatedArtist of artist.related_artists) {
+    artistNames.push(relatedArtist.name)
+  }
+  let tracksResponse = await artistTracksByAlbum(albumsResponse.albums, artistNames);
+  if (tracksResponse.error.error) {
+    return {
+      title: "Error!",
+      artistName: artist.name,
+      error: "Something failed when getting album tracks. Please try again.",
+      errorStatus: tracksResponse.error.error.status,
+      errorMessage: tracksResponse.error.error.message
     }
-    let tracks = await artist_tracks_by_album(albums.albums, artistNames);
-    if (tracks.error.error) {
-      return resolve("Something failed when getting album tracks. Please try again.")
+  }
+  let playlistResponse = await create_playlist(artist.name)
+  if (playlistResponse.error) {
+    return {
+      title: "Error!",
+      artistName: artist.name,
+      error: "Something went wrong when creating the playlist. Try again.",
+      errorStatus: playlistResponse.error.status,
+      errorMessage: playlistResponse.error.message
     }
-    let playlistBody = await create_playlist(artist.name)
-    if (playlistBody.error) {
-      resolve("Something went wrong when creating the playlist. Try again.")
+  }
+  let playlistId = playlistResponse.id
+  let playlist = await addAllTracksToPlaylist(playlistId, tracksResponse.tracks);
+  if (playlist.error) {
+    return {
+      title: "Error!",
+      artistName: artist.name,
+      error: "Something went wrong when adding tracks to playlist. Try again.",
+      errorStatus: playlist.error.status,
+      errorMessage: playlist.error.message
     }
-    let playlistId = playlistBody.id
-    let playlist = await addAllTracksToPlaylist(playlistId, tracks.tracks);
-    if (!playlist.allSuccess) {
-      resolve("Something went wrong when adding tracks to playlist. Try again.")
-    } else {
-      resolve(`${artist.name} playlist created!`);
+  } else {
+    return {
+      title: "Created!",
+      artistName: artist.name,
+      error: null,
+      errorStatus: null,
+      errorMessage: null
     }
-  })
+  }
 }
 
 module.exports = { run, runForArtist }

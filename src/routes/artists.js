@@ -15,8 +15,7 @@ router.post("/artist/:id/delete", artist_controller.artist_delete_post);
 router.get("/artist/:id/swap", artist_controller.artist_swap_playlist_get);
 router.post("/artist/:id/swap", artist_controller.artist_swap_playlist_post);
 
-router.get("/artist/:id/run", artist_controller.run_for_artist_get);
-router.post("/artist/:id/run", artist_controller.run_for_artist_post);
+router.get("/artist/:id/run", artist_controller.run_for_artist);
 
 router.get("/artist/:id/edit", artist_controller.artist_edit_get)
 router.post("/artist/:id/edit", artist_controller.artist_edit_post)
