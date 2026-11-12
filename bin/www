@@ -4,9 +4,9 @@
  * Module dependencies.
  */
 
-var app = require('../src/app');
-var debug = require('debug')('express-spotify:server');
-var http = require('http');
+import app from '../src/app.ts'
+import debug from 'debug'
+import http from 'http'
 
 /**
  * Get port from environment and store in Express.
