@@ -1,4 +1,4 @@
-import { call_spotify } from './common.ts';
+import { call_spotify } from './common';
 
 export const get_spotify_id_for_artist = async (artistName: string) => {
   let path = `/v1/search?q=${artistName}&type=artist`;

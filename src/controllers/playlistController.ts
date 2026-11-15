@@ -1,7 +1,7 @@
-import { SPOTIFY_LIMIT, SPOTIFY_URI_LIMIT } from '../utils/constants.ts'
-import { chunkArray } from '../utils/arrayUtils.ts'
-import { call_add_tracks_to_playlist, get_playlists } from '../services/spotify/playlist.ts'
-import { ArtistPlaylistTracksError, GetPlaylistsError, PlaylistTrackError, PlaylistTracksError } from '../errors.ts'
+import { SPOTIFY_LIMIT, SPOTIFY_URI_LIMIT } from '../utils/constants'
+import { chunkArray } from '../utils/arrayUtils'
+import { call_add_tracks_to_playlist, get_playlists } from '../services/spotify/playlist'
+import { ArtistPlaylistTracksError, GetPlaylistsError, PlaylistTrackError, PlaylistTracksError } from '../errors'
 
 export const getAllPlaylists = async (): Promise<any[]> => {
   return new Promise(async (resolve, reject) => {

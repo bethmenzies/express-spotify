@@ -1,5 +1,5 @@
 import { request as _request } from 'https';
-import { ResponseError, Response429Error, ResponseNotJsonError, RequestError } from '../../errors.ts'
+import { ResponseError, Response429Error, ResponseNotJsonError, RequestError } from '../../errors'
 
 export const call_spotify = async (options: any, body: any | undefined): Promise<any> => {
   return new Promise((resolve, reject) => {

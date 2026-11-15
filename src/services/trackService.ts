@@ -1,9 +1,7 @@
-import { set_up_tracks_for_removal, remove_items } from "./spotify/playlist.ts";
-import { getOldDate } from "../utils/dateUtils.ts";
-import { findTracksLteDate, deleteTracksLteDate, findTrackByUri, updateTrackPlaylistPosition, saveNewTrack } from "./db/tracks.ts";
-import { PlaylistTracksError, RequestParamError } from "../errors.ts";
-import { chunkArray } from "../utils/arrayUtils.ts";
-import { SPOTIFY_URI_LIMIT } from "../utils/constants.ts";
+import { set_up_tracks_for_removal, remove_items } from "./spotify/playlist";
+import { getOldDate } from "../utils/dateUtils";
+import { findTracksLteDate, deleteTracksLteDate, findTrackByUri, updateTrackPlaylistPosition, saveNewTrack } from "./db/tracks";
+import { PlaylistTracksError, RequestParamError } from "../errors";
 
 export const removeTracksFromDB = async (watchlist: boolean) => {
   const date = getOldDate()

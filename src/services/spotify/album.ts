@@ -1,6 +1,6 @@
-import { RequestParamError } from '../../errors.ts';
-import { SPOTIFY_LIMIT } from '../../utils/constants.ts';
-import { call_spotify } from './common.ts';
+import { RequestParamError } from '../../errors';
+import { SPOTIFY_LIMIT } from '../../utils/constants';
+import { call_spotify } from './common';
 
 export const get_albums_by_artist = async (artistId: string, limit: number, offset: number): Promise<any> => {
   if (artistId === '') {

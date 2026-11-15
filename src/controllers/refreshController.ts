@@ -1,5 +1,5 @@
 import asyncHandler from "express-async-handler"
-import Track from "../services/db/models/track.ts"
+import Track from "../services/db/models/track"
 
 export const refresh = asyncHandler(async (req, res, next) => {
   let watchlist = req.query.watchlist

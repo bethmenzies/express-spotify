@@ -1,10 +1,10 @@
-import { addAllTracksToPlaylist } from "./playlistController.ts"
+import { addAllTracksToPlaylist } from "./playlistController"
 import asyncHandler from "express-async-handler"
-import { getArtistsAlbums } from './albumController.ts'
-import { artistTracksByAlbum } from './trackController.ts'
-import { runForLatestTracks } from "../services/runService.ts"
-import { create_playlist } from "../services/spotify/playlist.ts"
-import { AlbumsTracksError, ArtistsAlbumsError, CreatePlaylistError, PlaylistTracksError } from "../errors.ts"
+import { getArtistsAlbums } from './albumController'
+import { artistTracksByAlbum } from './trackController'
+import { runForLatestTracks } from "../services/runService"
+import { create_playlist } from "../services/spotify/playlist"
+import { AlbumsTracksError, ArtistsAlbumsError, CreatePlaylistError, PlaylistTracksError } from "../errors"
 
 export const run = asyncHandler(async (req, res, next) => {
   const watchlist = req.query.watchlist

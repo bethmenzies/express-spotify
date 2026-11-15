@@ -1,8 +1,8 @@
-import { get_albums_by_artist } from "../services/spotify/album.ts"
-import { findArtistsByWatchlist } from "../services/db/artists.ts"
-import { getOldDate } from "../utils/dateUtils.ts"
-import { SPOTIFY_LIMIT, VARIOUS_ARTISTS } from "../utils/constants.ts"
-import { ArtistsAlbumsError } from "../errors.ts"
+import { get_albums_by_artist } from "../services/spotify/album"
+import { findArtistsByWatchlist } from "../services/db/artists"
+import { getOldDate } from "../utils/dateUtils"
+import { SPOTIFY_LIMIT, VARIOUS_ARTISTS } from "../utils/constants"
+import { ArtistsAlbumsError } from "../errors"
 
 export const getRecentAlbums = async (watchlist: boolean): Promise<any[]> => {
   var recentAlbums = []

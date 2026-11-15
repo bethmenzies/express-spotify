@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 
-import { run } from "../controllers/runController.ts";
+import { run } from "../controllers/runController";
 
 // GET request for list of all Artists.
 router.get("/", run);

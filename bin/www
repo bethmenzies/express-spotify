@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 
-import app from '../src/app.ts'
+import app from '../src/app'
 import debug from 'debug'
 import http from 'http'
 

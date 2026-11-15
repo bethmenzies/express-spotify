@@ -1,9 +1,9 @@
-import { addTracksOneByOneToPlaylist, addTracksToArtistPlaylists } from '../controllers/playlistController.ts'
-import { getRecentAlbums } from '../controllers/albumController.ts'
-import { getRecentTracks } from '../controllers/trackController.ts'
-import { removeTracksFromDB, removeTracksFromPlaylist, updateTracksInDB } from './trackService.ts'
-import { create_playlist } from "./spotify/playlist.ts"
-import { AlbumsTracksError, ArtistPlaylistTracksError, ArtistsAlbumsError, CreatePlaylistError, GetPlaylistsError, PlaylistTrackError, PlaylistTracksError } from '../errors.ts'
+import { addTracksOneByOneToPlaylist, addTracksToArtistPlaylists } from '../controllers/playlistController'
+import { getRecentAlbums } from '../controllers/albumController'
+import { getRecentTracks } from '../controllers/trackController'
+import { removeTracksFromDB, removeTracksFromPlaylist, updateTracksInDB } from './trackService'
+import { create_playlist } from "./spotify/playlist"
+import { AlbumsTracksError, ArtistPlaylistTracksError, ArtistsAlbumsError, CreatePlaylistError, GetPlaylistsError, PlaylistTrackError, PlaylistTracksError } from '../errors'
 
 export const runForLatestTracks = async (watchlist: boolean) => {  
   let playlistId, playlistState

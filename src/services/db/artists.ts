@@ -1,4 +1,4 @@
-import Artist from './models/artist.ts';
+import Artist from './models/artist';
 
 export const findArtistsByWatchlist = async (watchlist: boolean) => {
   return await Artist.find({ watchlist: watchlist }, {}).sort({ name: 1 }).exec();

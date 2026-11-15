@@ -1,10 +1,10 @@
-import Track from "../services/db/models/track.ts"
+import Track from "../services/db/models/track"
 import asyncHandler from "express-async-handler"
-import { get_tracks_by_album } from '../services/spotify/track.ts'
-import { removeTracksFromPlaylist } from "../services/trackService.ts"
-import { increasePriority, decreasePriority, SPOTIFY_LIMIT } from "../utils/constants.ts"
-import { getAllTracks, getNumberOfTracksInDB, getNumberOfTracksToInclude } from "../services/db/tracks.ts"
-import { AlbumsTracksError, PlaylistTracksError } from "../errors.ts"
+import { get_tracks_by_album } from '../services/spotify/track'
+import { removeTracksFromPlaylist } from "../services/trackService"
+import { increasePriority, decreasePriority, SPOTIFY_LIMIT } from "../utils/constants"
+import { getAllTracks, getNumberOfTracksInDB, getNumberOfTracksToInclude } from "../services/db/tracks"
+import { AlbumsTracksError, PlaylistTracksError } from "../errors"
 
 export const artistTracksByAlbum = async (albums: any[], artistNames: string[]): Promise<any[]> => {
   let tracks: any[] = []

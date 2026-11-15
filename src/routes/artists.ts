@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 
-import { artist_list, artist_add_get, artist_add_post, artist_delete_get, artist_delete_post, artist_swap_playlist_get, artist_swap_playlist_post, run_for_artist, artist_edit_get, artist_edit_post } from "../controllers/artistController.ts";
+import { artist_list, artist_add_get, artist_add_post, artist_delete_get, artist_delete_post, artist_swap_playlist_get, artist_swap_playlist_post, run_for_artist, artist_edit_get, artist_edit_post } from "../controllers/artistController";
 
 // GET request for list of all Artists.
 router.get("/", artist_list);

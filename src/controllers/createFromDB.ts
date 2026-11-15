@@ -1,8 +1,8 @@
-import { addAllTracksToPlaylist } from "./playlistController.ts"
-import { findAllTracksToInclude } from '../services/db/tracks.ts'
+import { addAllTracksToPlaylist } from "./playlistController"
+import { findAllTracksToInclude } from '../services/db/tracks'
 import asyncHandler from "express-async-handler"
-import { create_playlist } from '../services/spotify/playlist.ts'
-import { CreatePlaylistError, PlaylistTracksError } from "../errors.ts";
+import { create_playlist } from '../services/spotify/playlist'
+import { CreatePlaylistError, PlaylistTracksError } from "../errors";
 
 export const create_playlist_from_db = asyncHandler(async (req, res, next) => {
   const watchlist = req.query.watchlist

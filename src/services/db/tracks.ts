@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import Track from './models/track.ts';
+import Track from './models/track';
 
 export const findTracksLteDate = async (date: string, watchlist: boolean, fields: string): Promise<any[]> => {
   return await Track.find({ 'album.release_date': { $lte: date }, watchlist: watchlist }, fields).exec();

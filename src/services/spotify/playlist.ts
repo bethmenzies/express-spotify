@@ -1,8 +1,8 @@
-import { call_spotify } from './common.ts'
-import { chunkArray } from '../../utils/arrayUtils.ts'
-import { CreatePlaylistError, RequestParamError } from '../../errors.ts'
-import { SPOTIFY_LIMIT, SPOTIFY_URI_LIMIT } from '../../utils/constants.ts'
-import { now } from '../../utils/dateUtils.ts'
+import { call_spotify } from './common'
+import { chunkArray } from '../../utils/arrayUtils'
+import { CreatePlaylistError, RequestParamError } from '../../errors'
+import { SPOTIFY_LIMIT, SPOTIFY_URI_LIMIT } from '../../utils/constants'
+import { now } from '../../utils/dateUtils'
 
 export const create_playlist = async (playlistName: string | undefined) => {
   let playlist

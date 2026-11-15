@@ -1,13 +1,13 @@
-import Artist from "../services/db/models/artist.ts"
-import Track from "../services/db/models/track.ts"
+import Artist from "../services/db/models/artist"
+import Track from "../services/db/models/track"
 import asyncHandler from "express-async-handler"
 import { body, validationResult } from "express-validator"
-import { addAllTracksToPlaylist } from"./playlistController.ts"
-import { runForArtist } from "./runController.ts"
-import { get_spotify_id_for_artist } from '../services/spotify/artist.ts'
-import { removeTracksFromPlaylist } from "../services/trackService.ts"
-import { doesArtistExist } from "../services/db/artists.ts"
-import { PlaylistTracksError } from "../errors.ts"
+import { addAllTracksToPlaylist } from"./playlistController"
+import { runForArtist } from "./runController"
+import { get_spotify_id_for_artist } from '../services/spotify/artist'
+import { removeTracksFromPlaylist } from "../services/trackService"
+import { doesArtistExist } from "../services/db/artists"
+import { PlaylistTracksError } from "../errors"
 
 export const run_for_artist = asyncHandler(async (req, res, next) => {
   const artist = await Artist.findById(req.params.id).exec();

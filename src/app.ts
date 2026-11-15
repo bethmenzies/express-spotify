@@ -5,13 +5,13 @@ const __dirname = path.resolve();
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 
-import artistsRouter from './routes/artists.ts';
-import createFromDBRouter from './routes/createFromDB.ts';
-import indexRouter from './routes/index.ts';
-import loginRouter from './routes/login.ts';
-import runRouter from './routes/run.ts';
-import refreshRouter from './routes/refresh.ts';
-import tracksRouter from './routes/tracks.ts';
+import artistsRouter from './routes/artists';
+import createFromDBRouter from './routes/createFromDB';
+import indexRouter from './routes/index';
+import loginRouter from './routes/login';
+import runRouter from './routes/run';
+import refreshRouter from './routes/refresh';
+import tracksRouter from './routes/tracks';
 
 var app = express();
 
