@@ -4,8 +4,14 @@ block content
   h1= title
 
   if error !== null
-    p= error
-    p Error: #{errorStatus} - #{errorMessage}
+    p Error: #{message}
+    p Caused by: #{error.message}
+    if resolution !== null
+      p #{resolution}
+  else if message !== null 
+    p Error: #{message}
+    if resolution !== null 
+      #{resolution}
   else if state === "nothing"
     p Nothing new to add. See you again soon.
   else

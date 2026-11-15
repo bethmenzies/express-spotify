@@ -5,7 +5,13 @@ block content
   h1 #{title} - #{artistName}
 
   if error !== null
-    p= error
-    p Error: #{errorStatus} - #{errorMessage}
+    p Error: #{message}
+    p Error: #{error.message}
+    if resolution !== null
+      p #{resolution}
+  else if message !== null 
+    p= Error: #{message}
+    if resolution !== null 
+      p #{resolution}
   else
     p Playlist created.
